@@ -1,0 +1,13 @@
+connections:
+    '*':
+        active: true
+        server: null
+        password: null
+        port: 6667
+        nickname: null
+        username: 'SocPuppet'
+        realname: 'Java powered IRC bot'
+        '*-channels': 
+            '*':
+                password: ''
+                autojoin: true

@@ -23,11 +23,14 @@
  */
 package com.entityreborn.config;
 
+import com.entityreborn.config.exceptions.ConfigException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,51 +45,50 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class YamlConfig extends ConfigurationSection {
     String filename;
+    InputStream inStream;
 
     public YamlConfig(String filename) {
         super("", null, null);
         this.filename = filename;
+        
+        File file = new File(filename);
+        
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            
+            try {
+                file.createNewFile();
+            } catch (IOException ex) {
+                throw new RuntimeException("Could not create file (" + filename + "!");
+            }
+        }
+        
+        try {
+            inStream = new FileInputStream(file);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(YamlConfig.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public YamlConfig(InputStream stream) {
+        super("", null, null);
+        inStream = stream;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void load() throws Exception {
-        File f = new File(filename);
-
-        if (!f.exists()) {
-            f.getParentFile().mkdirs();
-            f.createNewFile();
-        }
-
         Yaml yml = new Yaml();
 
-        nodes = (Map<String, Object>) yml.load(new FileInputStream(f));
+        nodes = (Map<String, Object>) yml.load(inStream);
 
         if (nodes == null) {
-            nodes = new HashMap<String, Object>();
+            nodes = new HashMap<>();
         }
     }
     
-    @Override
-    public void save() throws Exception {
-        File f = new File(filename);
-
-        if (!f.exists()) {
-            try {
-                f.createNewFile();
-            } catch (IOException ex) {
-                Logger.getLogger(YamlConfig.class.getName()).log(Level.SEVERE, null, ex);
-                return;
-            }
-        }
-
-        OutputStreamWriter s;
-        try {
-            s = new OutputStreamWriter(new FileOutputStream(f));
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(YamlConfig.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
+    public void saveTo(OutputStream stream) {
+        OutputStreamWriter s = new OutputStreamWriter(stream);
 
         DumperOptions options = new DumperOptions();
         options.setWidth(50);
@@ -96,6 +98,30 @@ public class YamlConfig extends ConfigurationSection {
 
         Yaml yml = new Yaml(options);
         yml.dump(nodes, s);
+    }
+    
+    @Override
+    public void save() throws ConfigException {
+        if (filename == null) {
+            throw new ConfigException("No filename was defined to save to!");
+        }
+        
+        File f = new File(filename);
+
+        if (!f.exists()) {
+            try {
+                f.mkdirs();
+                f.createNewFile();
+            } catch (IOException ex) {
+                Logger.getLogger(YamlConfig.class.getName()).log(Level.SEVERE, null, ex);
+                return;
+            }
+        }
+        try {
+            saveTo(new FileOutputStream(f));
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(YamlConfig.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public static void main(String[] args) throws Exception {

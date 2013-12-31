@@ -23,12 +23,13 @@
  */
 package com.entityreborn.socpuppet.config;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import com.entityreborn.config.ConfigurationSection;
 import com.entityreborn.config.YamlConfig;
 import com.entityreborn.config.exceptions.NoSuchSection;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -44,7 +45,8 @@ public class BotConfig {
     
     public void load() throws Exception {
         config.load();
-        YamlConfig defaults = new YamlConfig("defaults.yml");
+        InputStream stream = getClass().getResourceAsStream("/defaults.yml");
+        YamlConfig defaults = new YamlConfig(stream);
         defaults.load();
         config.setDefaults(defaults);
     }

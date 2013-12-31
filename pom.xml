@@ -26,7 +26,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>me.entityreborn</groupId>
+    <groupId>com.entityreborn</groupId>
     <artifactId>socpuppet</artifactId>
     <version>0.0.0</version>
     <packaging>jar</packaging>
@@ -114,7 +114,7 @@
         </dependency>
         
         <dependency>
-            <groupId>me.entityreborn.socbot</groupId>
+            <groupId>com.entityreborn.socbot</groupId>
             <artifactId>SocCore</artifactId>
             <version>0.0.0</version>
         </dependency>

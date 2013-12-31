@@ -29,6 +29,7 @@ import com.entityreborn.socpuppet.config.BotConfig;
 import com.entityreborn.socpuppet.config.Connection;
 import com.entityreborn.socpuppet.extensions.ExtensionManager;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscovery;
+import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscoveryCache;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -64,10 +65,19 @@ public class App {
         BotConfig c = new BotConfig();
         c.load();
         
+        File cachedir = new File("caches");
+        cachedir.mkdirs();
+        
+        ClassDiscoveryCache cache = new ClassDiscoveryCache(cachedir);
+        
         URL thisurl = ClassDiscovery.GetClassContainer(App.class);
+        ClassDiscovery.getDefaultInstance().setClassDiscoveryCache(cache);
         ClassDiscovery.getDefaultInstance().addDiscoveryLocation(thisurl);
         //ClassDiscovery.getDefaultInstance().addDiscoveryLocation(new File("../SocBotGeneral/target/SocBotFactoids-0.0.0-SNAPSHOT.jar").toURI().toURL());
-        ExtensionManager.AddDiscoveryLocation(new File("../SocBotGeneral/target/SocBotFactoids-0.0.0-SNAPSHOT.jar"));
+        
+        ExtensionManager.AddDiscoveryLocation(new File("../SPFactoids/target/SPFactoids-0.0.0-SNAPSHOT.jar"));
+        ExtensionManager.AddDiscoveryLocation(new File("../SPGroovy/target/SPGroovy-0.0.0-SNAPSHOT.jar"));
+        
         ExtensionManager.Initialize(ClassDiscovery.getDefaultInstance());
         ExtensionManager.Startup();
         

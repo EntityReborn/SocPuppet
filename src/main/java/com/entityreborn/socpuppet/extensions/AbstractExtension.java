@@ -23,10 +23,10 @@
  */
 package com.entityreborn.socpuppet.extensions;
 
-import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
-import java.io.File;
 import com.entityreborn.config.YamlConfig;
 import com.entityreborn.socpuppet.config.PluginConfig;
+import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
+import java.io.File;
 import java.lang.annotation.Annotation;
 
 /**

@@ -6,8 +6,8 @@ import com.laytonsmith.PureUtilities.ClassLoading.ClassMirror.FieldMirror;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassMirror.MethodMirror;
 import com.laytonsmith.PureUtilities.Common.ClassUtils;
 import com.laytonsmith.PureUtilities.Common.FileUtil;
-import com.laytonsmith.PureUtilities.ProgressIterator;
 import com.laytonsmith.PureUtilities.Common.StringUtils;
+import com.laytonsmith.PureUtilities.ProgressIterator;
 import com.laytonsmith.PureUtilities.ZipIterator;
 import java.io.File;
 import java.io.IOException;
@@ -969,6 +969,10 @@ public class ClassDiscovery {
 				packageRoot = c.getProtectionDomain().getCodeSource().getLocation().toString();
 			}
 			packageRoot = URLDecoder.decode(packageRoot, "UTF-8");
+                        if (packageRoot.matches("jar:file:.*!/")) {
+				packageRoot = StringUtils.replaceLast(packageRoot, "!/", "");
+				packageRoot = packageRoot.replaceFirst("jar:", "");
+			}
 			return new URL(packageRoot);
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException("While interrogating " + c.getName() + ", an unexpected exception was thrown.", e);

@@ -1,6 +1,5 @@
 package com.entityreborn.socpuppet.extensions;
 
-import com.entityreborn.socbot.events.PrivmsgEvent;
 import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
 import com.entityreborn.socpuppet.extensions.annotations.Trigger;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscovery;
@@ -82,7 +81,7 @@ public class ExtensionManager {
         for (ClassMirror<AbstractExtension> extmirror : cd.getClassesWithAnnotationThatExtend(SocBotPlugin.class, AbstractExtension.class)) {
             Extension plugin;
 
-            Class<AbstractExtension> extcls = extmirror.loadClass(dcl, true);
+            Class<? extends AbstractExtension> extcls = extmirror.loadClass(dcl, true);
             URL url = ClassDiscovery.GetClassContainer(extcls);
             System.out.println("URL: " + url);
             try {

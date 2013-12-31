@@ -24,9 +24,10 @@
 package com.entityreborn.socpuppet.extensions;
 
 import com.entityreborn.socbot.events.PrivmsgEvent;
-import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
 import com.entityreborn.socpuppet.extensions.annotations.Trigger;
+import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscovery;
 import java.lang.annotation.Annotation;
+import java.net.URL;
 
 /**
  *
@@ -41,7 +42,7 @@ public abstract class AbstractTrigger {
             if (a instanceof Trigger) {
                 Trigger e = (Trigger) a;
 
-                return e.name();
+                return e.value();
             }
         }
 
@@ -49,19 +50,11 @@ public abstract class AbstractTrigger {
     }
 
     public String plugin() {
-        for (Annotation a : getClass().getAnnotations()) {
-            if (a instanceof Trigger) {
-                Trigger e = (Trigger) a;
-                Class<? extends AbstractExtension> plug = e.plugin();
+        URL url = ClassDiscovery.GetClassContainer(getClass());
 
-                for (Annotation pa : plug.getAnnotations()) {
-                    if (pa instanceof SocBotPlugin) {
-                        SocBotPlugin pe = (SocBotPlugin) pa;
-                        
-                        return pe.value();
-                    }
-                }
-            }
+        ExtensionTracker tracker = ExtensionManager.getTrackers().get(url);
+        if (tracker != null) {
+            return tracker.getIdentifier();
         }
 
         return "<unknown>";

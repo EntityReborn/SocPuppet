@@ -38,6 +38,7 @@ import java.util.logging.Logger;
  * @author Jason Unger <entityreborn@gmail.com>
  */
 public class ExtensionTracker {
+    private String identifier;
     private final URL location;
     private final ClassDiscovery cd;
     private final DynamicClassLoader dcl;
@@ -56,6 +57,14 @@ public class ExtensionTracker {
 
     public void addPlugin(Extension plugin) {
         plugins.put(plugin.getName().toLowerCase(), plugin);
+        
+        if (identifier == null) {
+            identifier = plugin.getName();
+        }
+    }
+    
+    public String getIdentifier() {
+        return identifier;
     }
 
     public Map<String, Extension> getPlugins() {

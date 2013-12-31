@@ -1,6 +1,5 @@
 package com.entityreborn.socpuppet.extensions.annotations;
 
-import com.entityreborn.socpuppet.extensions.AbstractExtension;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -15,6 +14,5 @@ public @interface Trigger {
      *
      * @return String
      */
-    String name();
-    Class<? extends AbstractExtension> plugin();
+    String value();
 }

@@ -36,7 +36,7 @@ import com.entityreborn.socpuppet.extensions.annotations.Trigger;
  */
 @SocBotPlugin("factoids")
 public class Factoids extends AbstractExtension {
-    @Trigger(name="ping", plugin=Factoids.class)
+    @Trigger("ping")
     public static class ping extends AbstractTrigger {
         @Override
         public void exec(PrivmsgEvent event, String trigger, String args) {

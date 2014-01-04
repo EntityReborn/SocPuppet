@@ -24,6 +24,7 @@
 package com.entityreborn.socpuppet;
 
 import com.entityreborn.socbot.SocBot;
+import com.entityreborn.socbot.UserFactory;
 import com.entityreborn.socbot.eventsystem.EventManager;
 import com.entityreborn.socpuppet.config.BotConfig;
 import com.entityreborn.socpuppet.config.Connection;
@@ -80,6 +81,7 @@ public class App {
         
         ExtensionManager.Initialize(ClassDiscovery.getDefaultInstance());
         ExtensionManager.Startup();
+        UserFactory factory = new SocPuppetUser.Factory();
         
         for (String connname : c.getConnectionNames()) {
             Connection conn = c.getConnection(connname);
@@ -89,6 +91,7 @@ public class App {
             }
             
             final SocBot bot = new SocBot(connname);
+            bot.setUserFactory(factory);
             EventManager.registerEvents(new BuiltinListener(c), bot);
             
             String nickname = conn.getNickname();

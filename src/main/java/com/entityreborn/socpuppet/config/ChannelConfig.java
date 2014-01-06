@@ -29,8 +29,8 @@ import com.entityreborn.config.ConfigurationSection;
  *
  * @author Jason Unger <entityreborn@gmail.com>
  */
-public class Channel extends BaseConfig {
-    public Channel(ConfigurationSection sect) {
+public class ChannelConfig extends BaseConfig {
+    public ChannelConfig(ConfigurationSection sect) {
         super(sect);
     }
     

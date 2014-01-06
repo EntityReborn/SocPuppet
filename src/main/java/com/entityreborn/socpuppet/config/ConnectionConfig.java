@@ -23,23 +23,29 @@
  */
 package com.entityreborn.socpuppet.config;
 
+import com.entityreborn.config.ConfigurationSection;
+import com.entityreborn.config.exceptions.NoSuchSection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import com.entityreborn.config.ConfigurationSection;
-import com.entityreborn.config.exceptions.NoSuchSection;
 
 /**
  *
  * @author Jason Unger <entityreborn@gmail.com>
  */
-public class Connection extends BaseConfig {
-    final Map<String, Channel> channelMap;
+public class ConnectionConfig extends BaseConfig {
+    final Map<String, ChannelConfig> channelMap;
+    final BotConfig parentConfig;
     
-    public Connection(ConfigurationSection sect) {
+    public ConnectionConfig(BotConfig parent, ConfigurationSection sect) {
         super(sect);
         this.channelMap = new HashMap<>();
+        this.parentConfig = parent;
+    }
+
+    public BotConfig getParentConfig() {
+        return parentConfig;
     }
     
     public String getConfigName() {
@@ -96,7 +102,7 @@ public class Connection extends BaseConfig {
         return new HashSet<>();
     }
     
-    public Channel getChannel(String name) {
+    public ChannelConfig getChannel(String name) {
         ConfigurationSection chansect;
         
         try {
@@ -112,7 +118,7 @@ public class Connection extends BaseConfig {
                 return null;
             }
             
-            Channel chan = new Channel(chansect);
+            ChannelConfig chan = new ChannelConfig(chansect);
             channelMap.put(name.toLowerCase(), chan);
             
             return chan;

@@ -23,11 +23,12 @@
  */
 package com.entityreborn.socpuppet;
 
+import com.entityreborn.socpuppet.users.SocPuppetUser;
 import com.entityreborn.socbot.SocBot;
 import com.entityreborn.socbot.UserFactory;
 import com.entityreborn.socbot.eventsystem.EventManager;
 import com.entityreborn.socpuppet.config.BotConfig;
-import com.entityreborn.socpuppet.config.Connection;
+import com.entityreborn.socpuppet.config.ConnectionConfig;
 import com.entityreborn.socpuppet.extensions.ExtensionManager;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscovery;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscoveryCache;
@@ -84,13 +85,13 @@ public class App {
         UserFactory factory = new SocPuppetUser.Factory();
         
         for (String connname : c.getConnectionNames()) {
-            Connection conn = c.getConnection(connname);
+            ConnectionConfig conn = c.getConnection(connname);
             
             if (!conn.isActive()) {
                 continue;
             }
             
-            final SocBot bot = new SocBot(connname);
+            final SocBot bot = new SocPuppet(conn, connname);
             bot.setUserFactory(factory);
             EventManager.registerEvents(new BuiltinListener(c), bot);
             

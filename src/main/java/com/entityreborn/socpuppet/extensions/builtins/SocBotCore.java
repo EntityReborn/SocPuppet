@@ -21,57 +21,62 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.entityreborn.socpuppet.extensions;
+
+package com.entityreborn.socpuppet.extensions.builtins;
 
 import com.entityreborn.socbot.events.PrivmsgEvent;
+import com.entityreborn.socpuppet.extensions.AbstractExtension;
+import com.entityreborn.socpuppet.extensions.AbstractTrigger;
 import com.entityreborn.socpuppet.extensions.annotations.Permission;
+import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
 import com.entityreborn.socpuppet.extensions.annotations.Trigger;
-import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscovery;
-import java.lang.annotation.Annotation;
-import java.net.URL;
 
 /**
  *
  * @author Jason Unger <entityreborn@gmail.com>
  */
-public abstract class AbstractTrigger {
-
-    public abstract String exec(PrivmsgEvent event, String trigger, String args);
-
-    public String name() {
-        for (Annotation a : getClass().getAnnotations()) {
-            if (a instanceof Trigger) {
-                Trigger e = (Trigger) a;
-
-                return e.value();
-            }
+@SocBotPlugin("SocBotCore")
+public class SocBotCore extends AbstractExtension {
+    @Trigger("ping")
+    public static class ping extends AbstractTrigger {
+        @Override
+        public String exec(PrivmsgEvent event, String trigger, String args) {
+            return "Ping!";
         }
 
-        return "<unknown>";
+        @Override
+        public String docs() {
+            return "ping - Pings the bot.";
+        }
     }
     
-    public Permission permission() {
-        for (Annotation a : getClass().getAnnotations()) {
-            if (a instanceof Permission) {
-                Permission p = (Permission) a;
-
-                return p;
-            }
+    @Trigger("pong")
+    public static class pong extends AbstractTrigger {
+        @Override
+        public String exec(PrivmsgEvent event, String trigger, String args) {
+            return "Pong!";
         }
 
-        return null;
+        @Override
+        public String docs() {
+            return "pong - Pongs the bot.";
+        }
     }
-
-    public String plugin() {
-        URL url = ClassDiscovery.GetClassContainer(getClass());
-
-        ExtensionTracker tracker = ExtensionManager.getTrackers().get(url);
-        if (tracker != null) {
-            return tracker.getIdentifier();
+    
+    @Trigger("say")
+    @Permission(node="core.say")
+    public static class say extends AbstractTrigger {
+        @Override
+        public String exec(PrivmsgEvent event, String trigger, String args) {
+            if (args != null && !args.trim().isEmpty())
+                return args;
+            
+            return null;
         }
 
-        return "<unknown>";
+        @Override
+        public String docs() {
+            return "say <something> - Tells the bot to say <something>.";
+        }
     }
-
-    public abstract String docs();
 }

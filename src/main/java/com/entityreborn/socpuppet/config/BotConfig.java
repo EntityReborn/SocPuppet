@@ -26,6 +26,7 @@ package com.entityreborn.socpuppet.config;
 import com.entityreborn.config.ConfigurationSection;
 import com.entityreborn.config.YamlConfig;
 import com.entityreborn.config.exceptions.NoSuchSection;
+import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +38,7 @@ import java.util.Map;
  */
 public class BotConfig {
     YamlConfig config;
-    Map<String, Connection> connectionCache = new HashMap<>();
+    Map<String, ConnectionConfig> connectionCache = new HashMap<>();
 
     public BotConfig() {
         config = new YamlConfig("config.yml");
@@ -55,7 +56,7 @@ public class BotConfig {
         return config.getStringList("connections");
     }
     
-    public Connection getConnection(String name) {
+    public ConnectionConfig getConnection(String name) {
         if (!connectionCache.containsKey(name.toLowerCase())) {
             ConfigurationSection sect;
 
@@ -65,11 +66,29 @@ public class BotConfig {
                 return null;
             }
 
-            Connection conn = new Connection(sect);
+            ConnectionConfig conn = new ConnectionConfig(this, sect);
 
             connectionCache.put(name.toLowerCase(), conn);
         }
         
         return connectionCache.get(name.toLowerCase());
+    }
+    
+    public File getDirectory(String type) {
+        ConfigurationSection dirsect;
+        
+        try {
+            dirsect = config.getSection("directories");
+        } catch (NoSuchSection ex) {
+            return null;
+        }
+        
+        String dir = dirsect.getString(type.toLowerCase());
+        
+        if (dir == null) {
+            return null;
+        }
+        
+        return new File(dir);
     }
 }

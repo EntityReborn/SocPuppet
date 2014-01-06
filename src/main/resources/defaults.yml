@@ -11,3 +11,7 @@ connections:
             '*':
                 password: ''
                 autojoin: true
+directories:
+    config: conf
+    plugins: plugins
+    plugindata: data

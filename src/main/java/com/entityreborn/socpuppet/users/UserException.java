@@ -21,27 +21,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-package com.entityreborn.socpuppet;
-
-import com.entityreborn.socbot.SocBot;
-import com.entityreborn.socbot.User;
-import com.entityreborn.socbot.UserFactory;
+package com.entityreborn.socpuppet.users;
 
 /**
  *
  * @author Jason Unger <entityreborn@gmail.com>
  */
-public class SocPuppetUser extends User {
-    public static class Factory implements UserFactory {
-        @Override
-        public User createUser(String nick, SocBot owningBot) {
-            return new SocPuppetUser(nick, owningBot);
+public class UserException extends Exception {
+
+    String id;
+
+    public String getID() {
+        return id;
+    }
+
+    public UserException(String id) {
+        this.id = id;
+    }
+
+    public static class UserRegistrationException extends UserException {
+
+        private final Throwable exception;
+
+        public UserRegistrationException(String id, Throwable ex) {
+            super(id);
+            exception = ex;
+        }
+
+        public Throwable getException() {
+            return exception;
+        }
+    }
+
+    public static class UserExists extends UserException {
+
+        public UserExists(String id) {
+            super(id);
+        }
+    }
+
+    public static class UnknownUser extends UserException {
+
+        public UnknownUser(String id) {
+            super(id);
         }
     }
     
-    public SocPuppetUser(String userline, SocBot b) {
-        super(userline, b);
+    public static class IncorrectPassword extends UserException {
+
+        public IncorrectPassword(String id) {
+            super(id);
+        }
     }
-    
 }

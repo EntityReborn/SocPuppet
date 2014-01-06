@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2013 Jason Unger <entityreborn@gmail.com>.
+ * Copyright 2014 Jason Unger <entityreborn@gmail.com>.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,24 @@
  * THE SOFTWARE.
  */
 
-package com.entityreborn.socpuppet.extensions.builtins;
+package com.entityreborn.socpuppet;
 
-import com.entityreborn.socbot.events.PrivmsgEvent;
-import com.entityreborn.socpuppet.extensions.AbstractExtension;
-import com.entityreborn.socpuppet.extensions.AbstractTrigger;
-import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
-import com.entityreborn.socpuppet.extensions.annotations.Trigger;
+import com.entityreborn.socbot.SocBot;
+import com.entityreborn.socpuppet.config.ConnectionConfig;
 
 /**
  *
  * @author Jason Unger <entityreborn@gmail.com>
  */
-@SocBotPlugin("factoids")
-public class Factoids extends AbstractExtension {
-    @Trigger("ping")
-    public static class ping extends AbstractTrigger {
-        @Override
-        public void exec(PrivmsgEvent event, String trigger, String args) {
-            event.getTarget().sendMsg("Pong!");
-        }
+public class SocPuppet extends SocBot {
+    private final ConnectionConfig config;
 
-        @Override
-        public String docs() {
-            return "ping - Pings the bot.";
-        }
+    public SocPuppet(ConnectionConfig conf, String identifier) {
+        super(identifier);
+        config = conf;
+    }
+
+    public ConnectionConfig getConfig() {
+        return config;
     }
 }

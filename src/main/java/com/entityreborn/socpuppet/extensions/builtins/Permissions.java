@@ -27,6 +27,7 @@ package com.entityreborn.socpuppet.extensions.builtins;
 import com.entityreborn.socbot.events.PrivmsgEvent;
 import com.entityreborn.socpuppet.SocPuppet;
 import com.entityreborn.socpuppet.extensions.AbstractTrigger;
+import com.entityreborn.socpuppet.extensions.annotations.Permission;
 import com.entityreborn.socpuppet.extensions.annotations.Trigger;
 import com.entityreborn.socpuppet.users.RegisteredUser;
 import com.entityreborn.socpuppet.users.SocPuppetUser;
@@ -140,6 +141,7 @@ public class Permissions {
     }
     
     @Trigger("addperm")
+    @Permission(node="core.user.addperm")
     public static class addperm extends AbstractTrigger {
 
         @Override
@@ -181,6 +183,7 @@ public class Permissions {
     }
     
     @Trigger("remperm")
+    @Permission(node="core.user.remperm")
     public static class remperm extends AbstractTrigger {
 
         @Override

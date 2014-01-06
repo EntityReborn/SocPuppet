@@ -38,6 +38,7 @@ import com.entityreborn.socpuppet.extensions.annotations.Trigger;
 @SocBotPlugin("SocBotCore")
 public class SocBotCore extends AbstractExtension {
     @Trigger("ping")
+    @Permission(node="core.general.ping", defaultTo = Permission.DefaultTo.ALLOW)
     public static class ping extends AbstractTrigger {
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
@@ -51,6 +52,7 @@ public class SocBotCore extends AbstractExtension {
     }
     
     @Trigger("pong")
+    @Permission(node="core.general.pong", defaultTo = Permission.DefaultTo.ALLOW)
     public static class pong extends AbstractTrigger {
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
@@ -64,7 +66,7 @@ public class SocBotCore extends AbstractExtension {
     }
     
     @Trigger("say")
-    @Permission(node="core.say")
+    @Permission(node="core.general.say")
     public static class say extends AbstractTrigger {
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {

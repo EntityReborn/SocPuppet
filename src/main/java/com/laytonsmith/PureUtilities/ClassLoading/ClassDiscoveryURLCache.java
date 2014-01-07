@@ -2,6 +2,7 @@
 package com.laytonsmith.PureUtilities.ClassLoading;
 
 import com.laytonsmith.PureUtilities.ClassLoading.ClassMirror.ClassMirror;
+import com.laytonsmith.PureUtilities.Common.ReflectionUtils;
 import com.laytonsmith.PureUtilities.ProgressIterator;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +49,7 @@ public class ClassDiscoveryURLCache {
 		discovery.setClassDiscoveryCache(null);
 		discovery.addDiscoveryLocation(url);
 		for(ClassMirror m : discovery.getKnownClasses(url)){
+                        ReflectionUtils.set(ClassMirror.class, m, "originalURL", url);
 			list.add(m);
 		}
 	}
@@ -75,6 +77,11 @@ public class ClassDiscoveryURLCache {
 			}
 		}
 		ois.close();
+                
+                for (ClassMirror m : _list) {
+                    ReflectionUtils.set(ClassMirror.class, m, "originalURL", url);
+                }
+                
 		this.list = _list;
 	}
 	

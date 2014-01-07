@@ -81,4 +81,20 @@ public class SocBotCore extends AbstractExtension {
             return "say <something> - Tells the bot to say <something>.";
         }
     }
+    
+    @Trigger("shutdown")
+    @Permission(node="core.general.shutdown")
+    public static class shutdown extends AbstractTrigger {
+        @Override
+        public String exec(PrivmsgEvent event, String trigger, String args) {
+            event.getBot().quit(args);
+            
+            return "GoodBye!";
+        }
+
+        @Override
+        public String docs() {
+            return "say <something> - Tells the bot to say <something>.";
+        }
+    }
 }

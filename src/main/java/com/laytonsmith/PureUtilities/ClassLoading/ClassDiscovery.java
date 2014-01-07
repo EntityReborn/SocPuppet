@@ -288,9 +288,11 @@ public class ClassDiscovery {
 					if (!file.matches(".*\\$(?:\\d)*\\.class") && file.endsWith(".class")) {
 						InputStream stream = null;
 						try {
-							stream = FileUtil.readAsStream(new File(rootLocationFile,
-									f.getAbsolutePath().replaceFirst(Pattern.quote(new File(root).getAbsolutePath() + File.separator), "")));
-							ClassMirror cm = new ClassMirror(stream);
+                                                        File fileurl = new File(rootLocationFile,
+								f.getAbsolutePath().replaceFirst(
+                                                                        Pattern.quote(new File(root).getAbsolutePath() + File.separator), ""));
+							stream = FileUtil.readAsStream(fileurl);
+							ClassMirror cm = new ClassMirror(stream, new URL(url));
 							mirrors.add(cm);
 						} catch (IOException ex) {
 							Logger.getLogger(ClassDiscovery.class.getName()).log(Level.SEVERE, null, ex);
@@ -322,7 +324,7 @@ public class ClassDiscovery {
 						public void handle(String filename, InputStream in) {
 							if (!filename.matches(".*\\$(?:\\d)*\\.class") && filename.endsWith(".class")) {
 								try {
-									ClassMirror cm = new ClassMirror(in);
+									ClassMirror cm = new ClassMirror(in, rootLocationFile.toURI().toURL());
 									mirrors.add(cm);
 								} catch (IOException ex) {
 									Logger.getLogger(ClassDiscovery.class.getName()).log(Level.SEVERE, null, ex);

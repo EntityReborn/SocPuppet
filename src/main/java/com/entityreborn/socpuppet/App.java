@@ -23,13 +23,14 @@
  */
 package com.entityreborn.socpuppet;
 
-import com.entityreborn.socpuppet.users.SocPuppetUser;
 import com.entityreborn.socbot.SocBot;
 import com.entityreborn.socbot.UserFactory;
 import com.entityreborn.socbot.eventsystem.EventManager;
 import com.entityreborn.socpuppet.config.BotConfig;
 import com.entityreborn.socpuppet.config.ConnectionConfig;
+import com.entityreborn.socpuppet.extensions.ExtensionCache;
 import com.entityreborn.socpuppet.extensions.ExtensionManager;
+import com.entityreborn.socpuppet.users.SocPuppetUser;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscovery;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscoveryCache;
 import java.io.File;
@@ -64,24 +65,48 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
+        File[] toLoad = new File[]{
+            new File("../SPFactoids/target/SPFactoids-0.0.0-SNAPSHOT.jar"),
+            new File("../SPGroovy/target/SPGroovy-0.0.0-SNAPSHOT.jar")
+        };
+        
         BotConfig c = new BotConfig();
         c.load();
         
-        File cachedir = new File("caches");
+        File cachedir = new File(".cache");
         cachedir.mkdirs();
+        File extcache = new File(cachedir, "extensions");
+        extcache.mkdirs();
         
-        ClassDiscoveryCache cache = new ClassDiscoveryCache(cachedir);
+        // Cache extensions!
+        ClassDiscoveryCache cache = new ClassDiscoveryCache(null);
+        ClassDiscovery cd = new ClassDiscovery();
+        cd.setClassDiscoveryCache(cache);
         
-        URL thisurl = ClassDiscovery.GetClassContainer(App.class);
-        ClassDiscovery.getDefaultInstance().setClassDiscoveryCache(cache);
-        ClassDiscovery.getDefaultInstance().addDiscoveryLocation(thisurl);
+        URL thisurl = ClassDiscovery.GetClassContainer(Test.class);
+        cd.addDiscoveryLocation(thisurl);
+        
+        ExtensionCache u = new ExtensionCache();
+        
+        for (File f : toLoad) {
+            u.addUpdateLocation(f);
+        }
+        
+        u.update(cd, extcache);
+        
+        // Load the cached extensions!
+        cache = new ClassDiscoveryCache(cachedir);
+        cd = ClassDiscovery.getDefaultInstance();
+        
+        cd.setClassDiscoveryCache(cache);
+        cd.addDiscoveryLocation(thisurl);
         //ClassDiscovery.getDefaultInstance().addDiscoveryLocation(new File("../SocBotGeneral/target/SocBotFactoids-0.0.0-SNAPSHOT.jar").toURI().toURL());
         
-        ExtensionManager.AddDiscoveryLocation(new File("../SPFactoids/target/SPFactoids-0.0.0-SNAPSHOT.jar"));
-        ExtensionManager.AddDiscoveryLocation(new File("../SPGroovy/target/SPGroovy-0.0.0-SNAPSHOT.jar"));
+        ExtensionManager.AddDiscoveryLocation(extcache);
         
-        ExtensionManager.Initialize(ClassDiscovery.getDefaultInstance());
+        ExtensionManager.Initialize(cd);
         ExtensionManager.Startup();
+        
         UserFactory factory = new SocPuppetUser.Factory();
         
         for (String connname : c.getConnectionNames()) {

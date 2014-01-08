@@ -80,7 +80,7 @@ public class BuiltinListener implements Listener {
 
     @EventHandler
     public void handleWelcome(WelcomeEvent event) {
-        debug(event.getBot(), event.getServerName() + " welcomes us to the server.");
+        debug(event.getBot(), event.getServerName() + " welcomed us to the server.");
         ConnectionConfig conn = config.getConnection(event.getBot().getID());
         
         for (String channame : conn.getChannelNames()) {

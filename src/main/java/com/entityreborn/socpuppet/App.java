@@ -28,7 +28,6 @@ import com.entityreborn.socbot.UserFactory;
 import com.entityreborn.socbot.eventsystem.EventManager;
 import com.entityreborn.socpuppet.config.BotConfig;
 import com.entityreborn.socpuppet.config.ConnectionConfig;
-import com.entityreborn.socpuppet.extensions.ExtensionCache;
 import com.entityreborn.socpuppet.extensions.ExtensionManager;
 import com.entityreborn.socpuppet.users.SocPuppetUser;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscovery;
@@ -78,31 +77,27 @@ public class App {
         File extcache = new File(cachedir, "extensions");
         extcache.mkdirs();
         
-        // Cache extensions!
-        ClassDiscoveryCache cache = new ClassDiscoveryCache(null);
-        ClassDiscovery cd = new ClassDiscovery();
-        cd.setClassDiscoveryCache(cache);
-        
-        URL thisurl = ClassDiscovery.GetClassContainer(Test.class);
-        cd.addDiscoveryLocation(thisurl);
-        
-        ExtensionCache u = new ExtensionCache();
+        URL thisurl = ClassDiscovery.GetClassContainer(App.class);
         
         for (File f : toLoad) {
-            u.addUpdateLocation(f);
+            ExtensionManager.AddDiscoveryLocation(f);
         }
         
-        u.update(cd, extcache);
+        // Cache extensions!
         
-        // Load the cached extensions!
-        cache = new ClassDiscoveryCache(cachedir);
-        cd = ClassDiscovery.getDefaultInstance();
-        
+        ClassDiscoveryCache cache = new ClassDiscoveryCache(cachedir);
+        ClassDiscovery cd = new ClassDiscovery();
         cd.setClassDiscoveryCache(cache);
         cd.addDiscoveryLocation(thisurl);
-        //ClassDiscovery.getDefaultInstance().addDiscoveryLocation(new File("../SocBotGeneral/target/SocBotFactoids-0.0.0-SNAPSHOT.jar").toURI().toURL());
         
-        ExtensionManager.AddDiscoveryLocation(extcache);
+        ExtensionManager.Cache(cd, extcache);
+        
+        // Load the cached extensions!
+        
+        cache = new ClassDiscoveryCache(cachedir);
+        cd = ClassDiscovery.getDefaultInstance();
+        cd.setClassDiscoveryCache(cache);
+        cd.addDiscoveryLocation(thisurl);
         
         ExtensionManager.Initialize(cd);
         ExtensionManager.Startup();

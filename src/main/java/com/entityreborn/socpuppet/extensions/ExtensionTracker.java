@@ -50,6 +50,11 @@ public class ExtensionTracker {
         this.cd = cd;
         this.dcl = dcl;
     }
+    
+    public void unload() {
+        cd.removeDiscoveryLocation(location);
+        dcl.removeJar(location);
+    }
 
     public URL getLocation() {
         return location;

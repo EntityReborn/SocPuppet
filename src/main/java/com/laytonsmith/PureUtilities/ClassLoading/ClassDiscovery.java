@@ -157,7 +157,7 @@ public class ClassDiscovery {
 	/**
 	 * May be null, but if set, is the cache retriever.
 	 */
-	private ClassDiscoveryCache classDiscoveryCache;
+	private ClassDiscoveryCache classDiscoveryCache = new ClassDiscoveryCache(null);
 	
 	/**
 	 * Turns debug mode on. If true, data about what is happening is printed out,
@@ -230,7 +230,7 @@ public class ClassDiscovery {
 	 * called by doDiscovery. Other internal methods should call doDiscovery,
 	 * which handles looking through the dirtyURLs.
 	 */
-	private synchronized void discover(URL rootLocation) {
+	public synchronized void discover(URL rootLocation) {
 		long start = System.currentTimeMillis();
 		if(debug){
 			System.out.println("Beginning discovery of " + rootLocation);

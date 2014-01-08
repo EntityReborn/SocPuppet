@@ -27,6 +27,7 @@ package com.entityreborn.socpuppet.extensions.builtins;
 import com.entityreborn.socbot.events.PrivmsgEvent;
 import com.entityreborn.socpuppet.extensions.AbstractExtension;
 import com.entityreborn.socpuppet.extensions.AbstractTrigger;
+import com.entityreborn.socpuppet.extensions.ExtensionManager;
 import com.entityreborn.socpuppet.extensions.annotations.Permission;
 import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
 import com.entityreborn.socpuppet.extensions.annotations.Trigger;
@@ -87,9 +88,27 @@ public class SocBotCore extends AbstractExtension {
     public static class shutdown extends AbstractTrigger {
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
+            event.getTarget().sendMsg("Goodbye!");
             event.getBot().quit(args);
             
-            return "GoodBye!";
+            return null;
+        }
+
+        @Override
+        public String docs() {
+            return "say <something> - Tells the bot to say <something>.";
+        }
+    }
+    
+    @Trigger("reload")
+    @Permission(node="core.general.extension.reload")
+    public static class reload extends AbstractTrigger {
+        @Override
+        public String exec(PrivmsgEvent event, String trigger, String args) {
+            String extension = args.split(" ")[0];
+            ExtensionManager.Unload(extension);
+            
+            return null;
         }
 
         @Override

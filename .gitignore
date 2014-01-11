@@ -4,4 +4,8 @@
 *.ear
 /target/
 /*.yml
-/conf/socbot.yml
+/conf/
+/plugins/
+/.cache/
+*.
+*.db

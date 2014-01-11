@@ -78,9 +78,9 @@ public class App {
         extcache.mkdirs();
         
         URL thisurl = ClassDiscovery.GetClassContainer(App.class);
-        
+        ExtensionManager em = ExtensionManager.Get();
         for (File f : toLoad) {
-            ExtensionManager.AddDiscoveryLocation(f);
+            em.addDiscoveryLocation(f);
         }
         
         // Cache extensions!
@@ -90,7 +90,7 @@ public class App {
         cd.setClassDiscoveryCache(cache);
         cd.addDiscoveryLocation(thisurl);
         
-        ExtensionManager.Cache(cd, extcache);
+        em.cache(extcache, cachedir);
         
         // Load the cached extensions!
         
@@ -99,8 +99,8 @@ public class App {
         cd.setClassDiscoveryCache(cache);
         cd.addDiscoveryLocation(thisurl);
         
-        ExtensionManager.Initialize(cd);
-        ExtensionManager.Startup();
+        em.initialize(extcache, cd);
+        em.startup();
         
         UserFactory factory = new SocPuppetUser.Factory();
         

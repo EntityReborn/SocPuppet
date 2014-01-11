@@ -65,7 +65,7 @@ public abstract class AbstractTrigger {
     public String plugin() {
         URL url = ClassDiscovery.GetClassContainer(getClass());
 
-        ExtensionTracker tracker = ExtensionManager.getTrackers().get(url);
+        ExtensionTracker tracker = ExtensionManager.Get().getExtensionTracker(url);
         if (tracker != null) {
             return tracker.getIdentifier();
         }

@@ -27,7 +27,6 @@ package com.entityreborn.socpuppet.extensions.builtins;
 import com.entityreborn.socbot.events.PrivmsgEvent;
 import com.entityreborn.socpuppet.extensions.AbstractExtension;
 import com.entityreborn.socpuppet.extensions.AbstractTrigger;
-import com.entityreborn.socpuppet.extensions.ExtensionManager;
 import com.entityreborn.socpuppet.extensions.annotations.Permission;
 import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
 import com.entityreborn.socpuppet.extensions.annotations.Trigger;
@@ -106,7 +105,7 @@ public class SocBotCore extends AbstractExtension {
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
             String extension = args.split(" ")[0];
-            ExtensionManager.Unload(extension);
+            //ExtensionManager.Unload(extension);
             
             return null;
         }

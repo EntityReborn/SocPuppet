@@ -119,7 +119,7 @@ public class BuiltinListener implements Listener {
             String trigger = regexMatcher.group(1);
             String args = regexMatcher.group(3);
             
-            for (ExtensionTracker tracker : ExtensionManager.getTrackers().values()) {
+            for (ExtensionTracker tracker : ExtensionManager.Get().getTrackers().values()) {
                 if (tracker.getTriggers().keySet().contains(trigger)) {
                     AbstractTrigger trig = tracker.getTriggers().get(trigger);
                     System.out.println("Called " + trig.plugin() + ":" + trig.name());

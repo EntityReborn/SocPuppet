@@ -38,12 +38,13 @@ import java.util.logging.Logger;
  * @author Jason Unger <entityreborn@gmail.com>
  */
 public class ExtensionTracker {
-    private String identifier;
-    private final URL location;
-    private final ClassDiscovery cd;
-    private final DynamicClassLoader dcl;
-    private final Map<String, Extension> plugins = new HashMap<>();
-    private final Map<String, AbstractTrigger> triggers = new HashMap<>();
+    String identifier;
+    final URL location;
+    final ClassDiscovery cd;
+    final DynamicClassLoader dcl;
+    
+    final Map<String, Extension> extensions = new HashMap<>();
+    final Map<String, AbstractTrigger> triggers = new HashMap<>();
 
     public ExtensionTracker(URL location, ClassDiscovery cd, DynamicClassLoader dcl) {
         this.location = location;
@@ -53,6 +54,7 @@ public class ExtensionTracker {
     
     public void unload() {
         cd.removeDiscoveryLocation(location);
+        cd.removePreCache(location);
         dcl.removeJar(location);
     }
 
@@ -60,8 +62,8 @@ public class ExtensionTracker {
         return location;
     }
 
-    public void addPlugin(Extension plugin) {
-        plugins.put(plugin.getName().toLowerCase(), plugin);
+    void addExtension(Extension plugin) {
+        extensions.put(plugin.getName().toLowerCase(), plugin);
         
         if (identifier == null) {
             identifier = plugin.getName();
@@ -72,30 +74,26 @@ public class ExtensionTracker {
         return identifier;
     }
 
-    public Map<String, Extension> getPlugins() {
-        return Collections.unmodifiableMap(plugins);
-    }
-
-    public ClassDiscovery getClassDiscovery() {
-        return cd;
+    public Map<String, Extension> getExtensions() {
+        return Collections.unmodifiableMap(extensions);
     }
 
     public void startup() {
-        for (Extension plugin : plugins.values()) {
-            System.out.println("Loading " + plugin.getName());
+        for (Extension ext : extensions.values()) {
+            System.out.println("Loading " + ext.getName());
 
             try {
-                plugin.onPluginLoad();
+                ext.onPluginLoad();
             } catch (Throwable e) {
                 Logger log = Logger.getLogger(ExtensionManager.class.getName());
-                log.log(Level.SEVERE, plugin.getName() + "'s onStartup caused an exception:");
+                log.log(Level.SEVERE, ext.getName() + "'s onStartup caused an exception:");
                 log.log(Level.SEVERE, StackTraceUtils.GetStacktrace(e));
             }
         }
     }
 
     public void shutdown() {
-        for (Extension plugin : plugins.values()) {
+        for (Extension plugin : extensions.values()) {
             try {
                 plugin.onPluginUnload();
             } catch (Throwable e) {
@@ -106,7 +104,7 @@ public class ExtensionTracker {
         }
     }
 
-    public void addTrigger(AbstractTrigger trig) {
+    void addTrigger(AbstractTrigger trig) {
         triggers.put(trig.name().toLowerCase(), trig);
     }
 

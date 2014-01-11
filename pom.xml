@@ -168,5 +168,11 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.7.15-M1</version>
         </dependency>
+        <dependency>
+            <groupId>com.sk89q</groupId>
+            <artifactId>commandhelper</artifactId>
+            <version>3.3.1-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 </project>

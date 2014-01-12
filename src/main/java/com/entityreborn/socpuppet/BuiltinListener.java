@@ -49,6 +49,10 @@ import com.entityreborn.socpuppet.config.ConnectionConfig;
 import com.entityreborn.socpuppet.extensions.AbstractTrigger;
 import com.entityreborn.socpuppet.extensions.ExtensionManager;
 import com.entityreborn.socpuppet.extensions.ExtensionTracker;
+import com.entityreborn.socpuppet.extensions.annotations.Permission;
+import com.entityreborn.socpuppet.extensions.annotations.Permission.DefaultTo;
+import com.entityreborn.socpuppet.users.RegisteredUser;
+import com.entityreborn.socpuppet.users.SocPuppetUser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -123,6 +127,37 @@ public class BuiltinListener implements Listener {
                 if (tracker.getTriggers().keySet().contains(trigger)) {
                     AbstractTrigger trig = tracker.getTriggers().get(trigger);
                     System.out.println("Called " + trig.plugin() + ":" + trig.name());
+                    
+                    SocPuppetUser user = (SocPuppetUser)event.getUser();
+                    Permission perm = trig.permission();
+                    
+                    if (perm != null) {
+                        RegisteredUser regUser = user.getRegistration();
+                        
+                        if (regUser == null) {
+                            event.getTarget().sendMsg("You aren't logged in! This"
+                                    + " command requires the '" + perm.node()
+                                    + "' permission.");
+                            
+                            event.setCancelled(true);
+                            
+                            return;
+                        }
+                        
+                        boolean hasPerm = user.getRegistration().hasPerm(
+                                perm.node(), perm.defaultTo() == DefaultTo.ALLOW);
+                        
+                        if (!hasPerm) {
+                            event.getTarget().sendMsg("I'm sorry, you don't have"
+                                    + " permission to run this command! This"
+                                    + " command requires the '" + perm.node()
+                                    + "' permission.");
+                            
+                            event.setCancelled(true);
+                            
+                            return;
+                        }
+                    }
                     
                     String response = trig.exec(event, trigger, args);
                     

@@ -24,17 +24,18 @@
 
 package com.entityreborn.socpuppet.users;
 
-import com.entityreborn.socpuppet.util.Password;
 import com.entityreborn.socbot.SocBot;
 import com.entityreborn.socbot.User;
 import com.entityreborn.socbot.UserFactory;
 import com.entityreborn.socpuppet.SocPuppet;
 import com.entityreborn.socpuppet.users.UserException.IncorrectPassword;
 import com.entityreborn.socpuppet.users.UserException.UnknownUser;
-import com.entityreborn.socpuppet.users.UserManager;
+import com.entityreborn.socpuppet.util.Password;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- *
+ * An IRC user that might interact with the bot.
  * @author Jason Unger <entityreborn@gmail.com>
  */
 public class SocPuppetUser extends User {
@@ -47,6 +48,19 @@ public class SocPuppetUser extends User {
     
     private String loginName = "";
     
+    public SocPuppetUser(String userline, SocBot b) {
+        super(userline, b);
+    }
+    
+    /**
+     * Attempt to login using the given name and password.
+     * @param name
+     * @param password
+     * @return
+     * @throws com.entityreborn.socpuppet.users.UserException.IncorrectPassword
+     * @throws com.entityreborn.socpuppet.users.UserException.UnknownUser
+     * @throws Exception 
+     */
     public boolean attemptLogin(String name, String password) throws IncorrectPassword, UnknownUser, Exception {
         UserManager manager = UserManager.get((SocPuppet) getBot());
         RegisteredUser user = manager.getUser(name);
@@ -59,19 +73,27 @@ public class SocPuppetUser extends User {
         }
     }
     
-    public SocPuppetUser(String userline, SocBot b) {
-        super(userline, b);
-    }
     
+    
+    /**
+     * Return the registration instance for this user.
+     * @return instance of RegisteredUser, or null if the user isn't logged in.
+     */
     public RegisteredUser getRegistration() {
         if ("".equals(loginName)) {
             return null;
         }
         
-        return null;
-    }
-
-    public String getLoginName() {
-        return loginName;
+        UserManager manager = UserManager.get((SocPuppet) getBot());
+        RegisteredUser user;
+        
+        try {
+            user = manager.getUser(loginName);
+        } catch (UnknownUser ex) {
+            Logger.getLogger(SocPuppetUser.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+        
+        return user;
     }
 }

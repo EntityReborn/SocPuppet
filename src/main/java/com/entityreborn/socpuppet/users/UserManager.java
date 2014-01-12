@@ -42,7 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * A user registration management class.
  * @author Jason Unger <entityreborn@gmail.com>
  */
 public class UserManager {
@@ -50,29 +50,40 @@ public class UserManager {
     private JdbcConnectionSource source;
     private Dao<RegisteredUser, String> dao;
     private final SocPuppet bot;
+    private String identifier = null;
 
-    private UserManager(SocPuppet bot) {
-        this.bot = bot;
-    }
-
-    public SocPuppet getBot() {
-        return bot;
-    }
-
+    /**
+     * Get a specific user registration manager for a given bot instance.
+     * Passing in null will use the default global database.
+     * @param bot
+     * @return 
+     */
     public static UserManager get(SocPuppet bot) {
         UserManager manager;
-        String identifier = bot.getConfig().getConfigName();
+        String identifier;
+        File configDir;
+        
+        if (bot != null) {
+            identifier = bot.getConfig().getConfigName();
+            configDir = bot.getConfig().getParentConfig().getDirectory("config");
+        } else {
+            identifier = "__global__";
+            configDir = new File("conf");
+        }
         
         if (!managers.containsKey(identifier.toLowerCase())) {
             try {
                 
                 manager = new UserManager(bot);
+                manager.identifier = identifier;
+                
                 managers.put(identifier.toLowerCase(), manager);
-                File configDir = bot.getConfig().getParentConfig().getDirectory("config");
+                
                 configDir.mkdirs();
+                
                 File dbFile = new File(configDir, identifier.toLowerCase() + "-users.db");
-
                 String url = "jdbc:sqlite:" + dbFile.getPath();
+                
                 manager.source = new JdbcConnectionSource(url);
                 manager.dao = DaoManager.createDao(manager.source, RegisteredUser.class);
 
@@ -86,6 +97,18 @@ public class UserManager {
 
         return managers.get(identifier.toLowerCase());
     }
+    
+    /**
+     * Private, to ensure factory use.
+     * @param bot 
+     */
+    private UserManager(SocPuppet bot) {
+        this.bot = bot;
+    }
+
+    public SocPuppet getBot() {
+        return bot;
+    }
 
     public boolean has(String key) {
         try {
@@ -97,6 +120,11 @@ public class UserManager {
     }
 
     public RegisteredUser getUser(String key) throws UnknownUser {
+        // Return the global user if one exists.
+        if (!identifier.equalsIgnoreCase("__global__") && UserManager.get(null).has(key)) {
+            return UserManager.get(null).getUser(key);
+        }
+        
         if (!has(key)) {
             throw new UnknownUser(key);
         }

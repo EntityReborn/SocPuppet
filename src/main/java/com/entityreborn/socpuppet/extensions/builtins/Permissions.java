@@ -87,10 +87,21 @@ public class Permissions {
             }
             
             SocPuppetUser user = (SocPuppetUser)event.getUser();
+            boolean isGlobal = args.startsWith("--global");
+            
+            if (isGlobal) {
+                args = args.replaceFirst("^--global\\s+", "");
+            }
             
             String[] parts = args.split(" ", 3); // username, email, password
             
-            UserManager manager = UserManager.get((SocPuppet) user.getBot());
+            UserManager manager;
+            if (!isGlobal) {
+                manager = UserManager.get((SocPuppet) user.getBot());
+            } else {
+                manager = UserManager.get(null);
+            }
+            
             try {
                 manager.registerUser(parts[0], parts[2], parts[1]);
             } catch (UserException.UserExists ex) {
@@ -127,8 +138,14 @@ public class Permissions {
                 return "Unknown user";
             }
             
-            if (user.hasPerm(parts[1])) {
-                return "Yep";
+            String relative = user.getRelativePerm(parts[1]);
+            
+            if (relative != null) {
+                if (!relative.equalsIgnoreCase(parts[1])) {
+                    return "Yep, provided by '" + relative + "'!";
+                } else {
+                    return "Yep!";
+                }
             }
             
             return "Nope";
@@ -141,7 +158,7 @@ public class Permissions {
     }
     
     @Trigger("addperm")
-    @Permission(node="core.user.addperm")
+    @Permission(node="core.user.perms.add")
     public static class addperm extends AbstractTrigger {
 
         @Override
@@ -149,6 +166,7 @@ public class Permissions {
             if (!(event.getUser() instanceof SocPuppetUser)) {
                 return null;
             }
+            
             String[] parts = args.split(" ");
             
             UserManager manager = UserManager.get((SocPuppet) event.getBot());
@@ -161,8 +179,15 @@ public class Permissions {
                 return "Unknown user";
             }
             
-            if (user.hasPerm(parts[1])) {
-                return "User already has that perm!";
+            String relative = user.getRelativePerm(parts[1]);
+            
+            if (relative != null) {
+                if (relative.equalsIgnoreCase(parts[1])) {
+                    return "User already has that perm!";
+                } else {
+                    return "User already has that perm, provided by '" 
+                            + relative + "'!";
+                }
             }
             
             user.addPerm(parts[1]);
@@ -183,7 +208,7 @@ public class Permissions {
     }
     
     @Trigger("remperm")
-    @Permission(node="core.user.remperm")
+    @Permission(node="core.user.perms.remove")
     public static class remperm extends AbstractTrigger {
 
         @Override
@@ -191,6 +216,7 @@ public class Permissions {
             if (!(event.getUser() instanceof SocPuppetUser)) {
                 return null;
             }
+            
             String[] parts = args.split(" ");
             
             UserManager manager = UserManager.get((SocPuppet) event.getBot());
@@ -202,8 +228,13 @@ public class Permissions {
                 return "Unknown user";
             }
             
-            if (!user.hasPerm(parts[1])) {
-                return "User doesn't have that perm!";
+            String relative = user.getRelativePerm(parts[1]);
+            
+            if (relative != null) {
+                if (!relative.equalsIgnoreCase(parts[1])) {
+                    return "User has that perm, but it is provided by '" 
+                            + relative + "'. Remove that perm instead.";
+                }
             }
             
             user.removePerm(parts[1]);

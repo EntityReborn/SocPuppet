@@ -24,6 +24,8 @@
 
 package com.entityreborn.socpuppet.users;
 
+import com.entityreborn.socpuppet.extensions.annotations.Permission;
+import com.entityreborn.socpuppet.extensions.annotations.Permission.DefaultTo;
 import com.entityreborn.socpuppet.util.Password;
 import com.entityreborn.socpuppet.util.StringSetType;
 import com.j256.ormlite.field.DataType;
@@ -52,11 +54,13 @@ public class RegisteredUser extends BaseDaoEnabled {
     @DatabaseField(dataType = DataType.DATE_LONG)
     private Date regDate;
     @DatabaseField(defaultValue = "", persisterClass = StringSetType.class)
-    private HashSet<String> perms;
+    private final HashSet<String> perms;
+    @DatabaseField(defaultValue = "", persisterClass = StringSetType.class)
+    private final HashSet<String> groups;
     
     public RegisteredUser() {
-        //permstring = "";
         perms = new HashSet<>();
+        groups = new HashSet<>();
     }
 
     public RegisteredUser(String username, String password, String email) throws Exception {
@@ -66,6 +70,7 @@ public class RegisteredUser extends BaseDaoEnabled {
         
         regDate = new Date();
         perms = new HashSet<>();
+        groups = new HashSet<>();
     }
     /**
      * @return the username
@@ -131,11 +136,63 @@ public class RegisteredUser extends BaseDaoEnabled {
      * Checks if user has a permission node. Will traverse down nodes,
      * in the case of using wildcard permissions.
      * @param perm
+     * @return True if assigned, False if denied, and the perm's default if not assigned.
+     */
+    public boolean hasPerm(Permission perm) {
+        return hasPerm(perm.node(), perm.defaultTo() == DefaultTo.ALLOW);
+    }
+    
+    public boolean hasExactPerm(String perm) {
+        return perms.contains(perm.toLowerCase());
+    }
+    
+    public String getRelativePerm(String perm) {
+        perm = perm.toLowerCase();
+        
+        if (perms.contains("*")) {
+            return "*";
+        }
+        
+        if (perms.contains(perm)) {
+            return perm;
+        }
+        
+        if (perms.contains("-" + perm)) {
+            return "-" + perm;
+        }
+        
+        int index = perm.lastIndexOf(".");
+        
+        while (index != -1) {
+            perm = perm.substring(0, index);
+            
+            if (perms.contains(perm + ".*")) {
+                return perm + ".*";
+            }
+            
+            if (perms.contains("-" + perm + ".*")) {
+                return "-" + perm + ".*";
+            }
+            
+            index = perm.lastIndexOf(".");
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Checks if user has a permission node. Will traverse down nodes,
+     * in the case of using wildcard permissions.
+     * @param perm
      * @param def
      * @return True if assigned, False if denied, and def if not assigned.
      */
-    public boolean hasPerm(String perm, boolean def) {
+    public Boolean hasPerm(String perm, Boolean def) {
         perm = perm.toLowerCase();
+        
+        if (perms.contains("*")) {
+            return true;
+        }
         
         if (perms.contains(perm)) {
             return true;
@@ -157,6 +214,8 @@ public class RegisteredUser extends BaseDaoEnabled {
             if (perms.contains("-" + perm + ".*")) {
                 return false;
             }
+            
+            index = perm.lastIndexOf(".");
         }
         
         return def;

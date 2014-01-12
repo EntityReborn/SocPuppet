@@ -41,6 +41,6 @@ public @interface Permission {
         DENY
     }
     
-    String[] node();
+    String node();
     DefaultTo defaultTo() default DefaultTo.DENY;
 }

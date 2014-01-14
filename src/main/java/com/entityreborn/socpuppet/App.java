@@ -64,12 +64,7 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        File[] toLoad = new File[]{
-            new File("../SPFactoids/target/SPFactoids-0.0.0-SNAPSHOT.jar"),
-            new File("../SPGroovy/target/SPGroovy-0.0.0-SNAPSHOT.jar")
-        };
-        
-        BotConfig c = new BotConfig();
+        BotConfig c = BotConfig.get();
         c.load();
         
         File cachedir = new File(".cache");
@@ -79,9 +74,8 @@ public class App {
         
         URL thisurl = ClassDiscovery.GetClassContainer(App.class);
         ExtensionManager em = ExtensionManager.Get();
-        for (File f : toLoad) {
-            em.addDiscoveryLocation(f);
-        }
+        
+        em.addDiscoveryLocation(c.getDirectory("plugins"));
         
         // Cache extensions!
         

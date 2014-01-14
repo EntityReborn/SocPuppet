@@ -37,10 +37,20 @@ import java.util.Map;
  * @author Jason Unger <entityreborn@gmail.com>
  */
 public class BotConfig {
+    private static BotConfig instance;
+    
     YamlConfig config;
     Map<String, ConnectionConfig> connectionCache = new HashMap<>();
 
-    public BotConfig() {
+    public static BotConfig get() {
+        if (instance == null) {
+            instance = new BotConfig();
+        }
+        
+        return instance;
+    }
+    
+    private BotConfig() {
         config = new YamlConfig("config.yml");
     }
     

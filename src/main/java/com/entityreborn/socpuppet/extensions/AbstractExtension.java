@@ -24,6 +24,7 @@
 package com.entityreborn.socpuppet.extensions;
 
 import com.entityreborn.config.YamlConfig;
+import com.entityreborn.socpuppet.config.BotConfig;
 import com.entityreborn.socpuppet.config.PluginConfig;
 import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
 import java.io.File;
@@ -36,7 +37,10 @@ import java.lang.annotation.Annotation;
 public abstract class AbstractExtension implements Extension {
     @Override
     public final File getDataDir() {
-        File file = new File("plugins", getName());
+        File file = new File(BotConfig.get().getDirectory("plugindata"),
+                getName());
+        file.mkdirs();
+        
         return file;
     }
     

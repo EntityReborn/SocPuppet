@@ -42,7 +42,7 @@ import java.util.logging.Logger;
  * @author Jason Unger <entityreborn@gmail.com>
  */
 public class Permissions {
-    @Trigger("login")
+    @Trigger(name="login", id="core.user.login")
     public static class login extends AbstractTrigger {
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
@@ -77,7 +77,7 @@ public class Permissions {
         }
     }
     
-    @Trigger("register")
+    @Trigger(name="register", id="core.user.register")
     public static class register extends AbstractTrigger {
 
         @Override
@@ -119,7 +119,7 @@ public class Permissions {
         }
     }
     
-    @Trigger("hasperm")
+    @Trigger(name="hasperm", id="core.user.perms.has")
     public static class hasperm extends AbstractTrigger {
 
         @Override
@@ -157,7 +157,7 @@ public class Permissions {
         }
     }
     
-    @Trigger("addperm")
+    @Trigger(name="addperm", id="core.user.perms.add")
     @Permission(node="core.user.perms.add")
     public static class addperm extends AbstractTrigger {
 
@@ -207,7 +207,7 @@ public class Permissions {
         }
     }
     
-    @Trigger("remperm")
+    @Trigger(name="remperm", id="core.user.perms.remove")
     @Permission(node="core.user.perms.remove")
     public static class remperm extends AbstractTrigger {
 

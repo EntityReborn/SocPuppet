@@ -85,8 +85,18 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>1.7.1</version>
                 <configuration>
-                    <minimizeJar>true</minimizeJar> 
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
                 </configuration>
+        
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -95,6 +105,55 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.bsc.maven</groupId>
+                <artifactId>maven-processor-plugin</artifactId>
+                <version>2.2.4</version>
+        
+                <executions>
+                    <execution>
+                        <id>process</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                    </execution>
+                </executions>
+        
+                <configuration>
+                    <outputDirectory>src/main/generated</outputDirectory>
+          
+                    <processors>
+                        <processor>com.entityreborn.socpuppet.extensions.ExtensionAnnotationProcessor</processor>
+                    </processors>
+                </configuration>
+            </plugin>
+      
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+        
+                <executions>
+                    <execution>
+                        <id>cache-annotations</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+        
+                <configuration>
+                    <mainClass>com.laytonsmith.PureUtilities.ClassLoading.Annotations.CacheAnnotations</mainClass>
+          
+                    <arguments>
+                        <argument>${basedir}/target/classes</argument>
+                        <argument>${basedir}/target/classes</argument>
+                    </arguments>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -167,12 +226,6 @@
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.7.15-M1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sk89q</groupId>
-            <artifactId>commandhelper</artifactId>
-            <version>3.3.1-SNAPSHOT</version>
-            <type>jar</type>
         </dependency>
     </dependencies>
 </project>

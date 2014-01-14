@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package com.entityreborn.socpuppet.extensions.builtins;
 
 import com.entityreborn.socbot.events.PrivmsgEvent;
@@ -30,6 +29,10 @@ import com.entityreborn.socpuppet.extensions.AbstractTrigger;
 import com.entityreborn.socpuppet.extensions.annotations.Permission;
 import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
 import com.entityreborn.socpuppet.extensions.annotations.Trigger;
+import com.entityreborn.socpuppet.util.Restart;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -37,9 +40,11 @@ import com.entityreborn.socpuppet.extensions.annotations.Trigger;
  */
 @SocBotPlugin("SocBotCore")
 public class SocBotCore extends AbstractExtension {
-    @Trigger("ping")
-    @Permission(node="core.general.ping", defaultTo = Permission.DefaultTo.ALLOW)
+
+    @Trigger(name = "ping", id = "core.general.ping")
+    @Permission(node = "core.general.ping", defaultTo = Permission.DefaultTo.ALLOW)
     public static class ping extends AbstractTrigger {
+
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
             return "Ping!";
@@ -50,10 +55,11 @@ public class SocBotCore extends AbstractExtension {
             return "ping - Pings the bot.";
         }
     }
-    
-    @Trigger("pong")
-    @Permission(node="core.general.pong", defaultTo = Permission.DefaultTo.ALLOW)
+
+    @Trigger(name = "pong", id = "core.general.pong")
+    @Permission(node = "core.general.pong", defaultTo = Permission.DefaultTo.ALLOW)
     public static class pong extends AbstractTrigger {
+
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
             return "Pong!";
@@ -64,15 +70,17 @@ public class SocBotCore extends AbstractExtension {
             return "pong - Pongs the bot.";
         }
     }
-    
-    @Trigger("say")
-    @Permission(node="core.general.say")
+
+    @Trigger(name = "say", id = "core.general.say")
+    @Permission(node = "core.general.say")
     public static class say extends AbstractTrigger {
+
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
-            if (args != null && !args.trim().isEmpty())
+            if (args != null && !args.trim().isEmpty()) {
                 return args;
-            
+            }
+
             return null;
         }
 
@@ -81,15 +89,15 @@ public class SocBotCore extends AbstractExtension {
             return "say <something> - Tells the bot to say <something>.";
         }
     }
-    
-    @Trigger("shutdown")
-    @Permission(node="core.general.shutdown")
+
+    @Trigger(name = "shutdown", id = "core.general.shutdown")
+    @Permission(node = "core.general.shutdown")
     public static class shutdown extends AbstractTrigger {
+
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
-            event.getTarget().sendMsg("Goodbye!");
-            event.getBot().quit(args);
-            
+            event.getBot().quit((args.trim().isEmpty()?"Bye!":args));
+
             return null;
         }
 
@@ -98,15 +106,45 @@ public class SocBotCore extends AbstractExtension {
             return "say <something> - Tells the bot to say <something>.";
         }
     }
-    
-    @Trigger("reload")
-    @Permission(node="core.general.extension.reload")
-    public static class reload extends AbstractTrigger {
+
+    @Trigger(name = "restart", id = "core.general.restart")
+    @Permission(node = "core.general.restart")
+    public static class restart extends AbstractTrigger {
+
         @Override
-        public String exec(PrivmsgEvent event, String trigger, String args) {
-            String extension = args.split(" ")[0];
-            //ExtensionManager.Unload(extension);
-            
+        public String exec(final PrivmsgEvent event, String trigger, String args) {
+            event.getBot().quit((args.trim().isEmpty()?"Bye!":args));
+
+            Runnable restartThread = new Runnable() {
+                @Override
+                public void run() {
+                    Runnable waitForDisconnect = new Runnable() {
+
+                        @Override
+                        public void run() {
+                            try {
+                                while (event.getBot().isConnected()) {
+                                    Thread.sleep(50);
+                                }
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(SocBotCore.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    };
+                    
+                    try {
+                        Restart.restartApplication(waitForDisconnect);
+                    } catch (IOException ex) {
+                        Logger.getLogger(SocBotCore.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            };
+
+            Thread shutdown = new Thread(restartThread);
+
+            shutdown.setDaemon(true);
+            shutdown.start();
+
             return null;
         }
 

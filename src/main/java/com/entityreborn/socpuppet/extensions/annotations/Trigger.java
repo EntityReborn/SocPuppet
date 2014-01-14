@@ -14,5 +14,7 @@ public @interface Trigger {
      *
      * @return String
      */
-    String value();
+    String name();
+    String id();
+    String extendsId() default "";
 }

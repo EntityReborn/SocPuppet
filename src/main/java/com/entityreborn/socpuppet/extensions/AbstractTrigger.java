@@ -35,16 +35,25 @@ import java.net.URL;
  * @author Jason Unger <entityreborn@gmail.com>
  */
 public abstract class AbstractTrigger {
-
     public abstract String exec(PrivmsgEvent event, String trigger, String args);
 
-    public String name() {
+    public Trigger getDefinition() {
         for (Annotation a : getClass().getAnnotations()) {
             if (a instanceof Trigger) {
                 Trigger e = (Trigger) a;
 
-                return e.value();
+                return e;
             }
+        }
+
+        return null;
+    }
+    
+    public String name() {
+        Trigger t = getDefinition();
+        
+        if (t != null) {
+            return t.name();
         }
 
         return "<unknown>";

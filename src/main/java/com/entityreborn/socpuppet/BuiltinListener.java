@@ -188,7 +188,7 @@ public class BuiltinListener implements Listener {
 
     @EventHandler
     public void handleLineIn(PacketReceivedEvent event) {
-        //debug(event.getBot(), event.getPacket().getOriginalLine());
+        debug(event.getBot(), event.getPacket().getOriginalLine());
     }
     
     @EventHandler
@@ -201,6 +201,7 @@ public class BuiltinListener implements Listener {
 
     @EventHandler
     public void handleLineOut(LineSendEvent event) {
+        debug(event.getBot(), event.getLine());
     }
 
     @EventHandler

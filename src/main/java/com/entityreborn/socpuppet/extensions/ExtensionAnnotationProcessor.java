@@ -26,8 +26,8 @@ import javax.tools.Diagnostic.Kind;
  * 
  * @author Jason Unger <entityreborn@gmail.com>
  */
-@SupportedAnnotationTypes({"com.laytonsmith.core.extensions.MSExtension"})
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedAnnotationTypes({"com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin"})
+@SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class ExtensionAnnotationProcessor extends AbstractProcessor {
 	int found = 0;
 

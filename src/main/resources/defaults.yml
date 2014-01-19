@@ -2,9 +2,9 @@ connections:
     '*':
         active: true
         server: null
-        password: null
+        password: ''
         port: 6667
-        nickname: null
+        nickname: ''
         username: 'SocPuppet'
         realname: 'Java powered IRC bot'
         '*-channels': 

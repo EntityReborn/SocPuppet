@@ -34,7 +34,7 @@ import com.entityreborn.socbot.events.ConnectingEvent;
 import com.entityreborn.socbot.events.JoinEvent;
 import com.entityreborn.socbot.events.LineSendEvent;
 import com.entityreborn.socbot.events.ModeChangeEvent;
-import com.entityreborn.socbot.events.NoticeEvent;
+import com.entityreborn.socbot.events.NickInUseEvent;
 import com.entityreborn.socbot.events.NumericEvent;
 import com.entityreborn.socbot.events.PacketReceivedEvent;
 import com.entityreborn.socbot.events.PartEvent;
@@ -172,7 +172,8 @@ public class BuiltinListener implements Listener {
     }
 
     @EventHandler
-    public void handleNotice(NoticeEvent event) {
+    public void handleNickInUse(NickInUseEvent event) {
+        event.getBot().setNickname(event.getNick() + "|");
     }
 
     @EventHandler

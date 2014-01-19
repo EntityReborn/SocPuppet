@@ -89,6 +89,25 @@ public class SocBotCore extends AbstractExtension {
             return "say <something> - Tells the bot to say <something>.";
         }
     }
+    
+    @Trigger(name = "parseraw", id = "core.general.parseraw")
+    @Permission(node = "core.general.parseraw")
+    public static class parseraw extends AbstractTrigger {
+
+        @Override
+        public String exec(PrivmsgEvent event, String trigger, String args) {
+            if (args != null && !args.trim().isEmpty()) {
+                event.getBot().handleLine(args);
+            }
+
+            return null;
+        }
+
+        @Override
+        public String docs() {
+            return "say <something> - Tells the bot to say <something>.";
+        }
+    }
 
     @Trigger(name = "shutdown", id = "core.general.shutdown")
     @Permission(node = "core.general.shutdown")

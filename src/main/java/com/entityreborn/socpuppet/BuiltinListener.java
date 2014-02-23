@@ -24,7 +24,7 @@
 package com.entityreborn.socpuppet;
 
 import com.entityreborn.socbot.Colors;
-import com.entityreborn.socbot.Numerics.Numeric;
+import com.entityreborn.socbot.Numerics;
 import com.entityreborn.socbot.SocBot;
 import com.entityreborn.socbot.Styles;
 import com.entityreborn.socbot.events.CTCPEvent;
@@ -191,10 +191,10 @@ public class BuiltinListener implements Listener {
     public void handleLineIn(PacketReceivedEvent event) {
         debug(event.getBot(), event.getPacket().getOriginalLine());
     }
-    
+
     @EventHandler
     public void handleNumeric(NumericEvent event) {
-        if (event.getNumeric() == Numeric.ERR_NICKNAMEINUSE) {
+        if (event.getNumeric() == Numerics.BuiltinNumeric.ERR_NICKNAMEINUSE) {
             String newnick = event.getPacket().getArgs().get(0);
             event.getBot().setNickname(newnick + "_");
         }

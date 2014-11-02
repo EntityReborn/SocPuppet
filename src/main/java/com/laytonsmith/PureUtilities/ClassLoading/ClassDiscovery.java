@@ -28,10 +28,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -91,55 +87,55 @@ public class ClassDiscovery {
 	public ClassDiscovery() {
 		//
 	}
-	
+
 	/**
 	 * Stores the mapping of class name to ClassMirror object. At any given
 	 * time, after doDiscovery is called, this will be up to date with all known
 	 * classes.
 	 */
-	private final Map<URL, Set<ClassMirror<?>>> classCache = new HashMap<URL, Set<ClassMirror<?>>>();
+	private final Map<URL, Set<ClassMirror<?>>> classCache = new HashMap<>();
 	/**
 	 * This cache maps jvm name to the associated ClassMirror object, to speed
 	 * up lookups.
 	 */
-	private final Map<String, ClassMirror<?>> jvmNameToMirror = new HashMap<String, ClassMirror<?>>();
+	private final Map<String, ClassMirror<?>> jvmNameToMirror = new HashMap<>();
 	/**
 	 * Maps the fuzzy class name to actual Class object.
 	 */
-	private final Map<String, ClassMirror<?>> fuzzyClassCache = new HashMap<String, ClassMirror<?>>();
+	private final Map<String, ClassMirror<?>> fuzzyClassCache = new HashMap<>();
 	/**
 	 * Maps the forName cache.
 	 */
-	private final Map<String, ClassMirror<?>> forNameCache = new HashMap<String, ClassMirror<?>>();
+	private final Map<String, ClassMirror<?>> forNameCache = new HashMap<>();
 	/**
 	 * List of all URLs from which to pull classes.
 	 */
-	private final Set<URL> urlCache = new HashSet<URL>();
+	private final Set<URL> urlCache = new HashSet<>();
 	/**
 	 * When a URL is added to urlCache, it is also initially added here. If
 	 * there are any URLs in this set, they must be resolved first.
 	 */
-	private final Set<URL> dirtyURLs = new HashSet<URL>();
+	private final Set<URL> dirtyURLs = new HashSet<>();
 	/**
 	 * Cache for class subtypes. Whenever a new URL is added to the URL cache,
 	 * this is cleared.
 	 */
-	private final Map<Class<?>, Set<ClassMirror<?>>> classSubtypeCache = new HashMap<Class<?>, Set<ClassMirror<?>>>();
+	private final Map<Class<?>, Set<ClassMirror<?>>> classSubtypeCache = new HashMap<>();
 	/**
 	 * Cache for class annotations. Whenever a new URL is added to the URL
 	 * cache, this is cleared.
 	 */
-	private final Map<Class<? extends Annotation>, Set<ClassMirror<?>>> classAnnotationCache = new HashMap<Class<? extends Annotation>, Set<ClassMirror<?>>>();
+	private final Map<Class<? extends Annotation>, Set<ClassMirror<?>>> classAnnotationCache = new HashMap<>();
 	/**
 	 * Cache for field annotations. Whenever a new URL is added to the URL
 	 * cache, this is cleared.
 	 */
-	private final Map<Class<? extends Annotation>, Set<FieldMirror>> fieldAnnotationCache = new HashMap<Class<? extends Annotation>, Set<FieldMirror>>();
+	private final Map<Class<? extends Annotation>, Set<FieldMirror>> fieldAnnotationCache = new HashMap<>();
 	/**
 	 * Cache for method annotations. Whenever a new URL is added to the URL
 	 * cache, this is cleared.
 	 */
-	private final Map<Class<? extends Annotation>, Set<MethodMirror>> methodAnnotationCache = new HashMap<Class<? extends Annotation>, Set<MethodMirror>>();
+	private final Map<Class<? extends Annotation>, Set<MethodMirror>> methodAnnotationCache = new HashMap<>();
 	/**
 	 * By default null, but this can be set per instance.
 	 */
@@ -148,21 +144,21 @@ public class ClassDiscovery {
 	 * External cache. If added before discovery happens for a URL, this will
 	 * cause the discovery process to be skipped entirely for a given URL.
 	 */
-	private final Map<URL, ClassDiscoveryURLCache> preCaches = new HashMap<URL, ClassDiscoveryURLCache>();
+	private final Map<URL, ClassDiscoveryURLCache> preCaches = new HashMap<>();
 	/**
 	 * If true, debug information will be printed out.
 	 */
 	private boolean debug;
-	
+
 	/**
 	 * May be null, but if set, is the cache retriever.
 	 */
-	private ClassDiscoveryCache classDiscoveryCache = new ClassDiscoveryCache(null);
-	
+	private ClassDiscoveryCache classDiscoveryCache;
+
 	/**
 	 * Turns debug mode on. If true, data about what is happening is printed out,
 	 * as well as timing information.
-	 * @param on 
+	 * @param on
 	 */
 	public void setDebugMode(boolean on){
 		debug = on;
@@ -176,6 +172,9 @@ public class ClassDiscovery {
 	 * @param url
 	 */
 	public void removePreCache(URL url) {
+		if (url == null) {
+			throw new NullPointerException("url cannot be null");
+		}
 		preCaches.remove(url);
 	}
 
@@ -186,16 +185,19 @@ public class ClassDiscovery {
 	 * @param cache
 	 */
 	public void addPreCache(URL url, ClassDiscoveryURLCache cache) {
+		if (url == null) {
+			throw new NullPointerException("url cannot be null");
+		}
 		if(debug){
 			System.out.println("Adding precache for " + url);
 		}
 		preCaches.put(url, cache);
 	}
-	
+
 	/**
 	 * Sets the class discovery cache. This is optional, but if set
 	 * is used to potentially speed up caching.
-	 * @param cache 
+	 * @param cache
 	 */
 	public void setClassDiscoveryCache(ClassDiscoveryCache cache){
 		this.classDiscoveryCache = cache;
@@ -230,7 +232,7 @@ public class ClassDiscovery {
 	 * called by doDiscovery. Other internal methods should call doDiscovery,
 	 * which handles looking through the dirtyURLs.
 	 */
-	public synchronized void discover(URL rootLocation) {
+	private synchronized void discover(URL rootLocation) {
 		long start = System.currentTimeMillis();
 		if(debug){
 			System.out.println("Beginning discovery of " + rootLocation);
@@ -241,7 +243,14 @@ public class ClassDiscovery {
 				ClassDiscoveryURLCache cduc = classDiscoveryCache.getURLCache(rootLocation);
 				preCaches.put(rootLocation, cduc);
 			}
-			String url = rootLocation.toString();
+
+			String url;
+			try {
+				url = URLDecoder.decode(rootLocation.toString(), "UTF8");
+			} catch (UnsupportedEncodingException ex) {
+				url = URLDecoder.decode(rootLocation.toString());
+			}
+
 			if (url == null) {
 				url = GetClassContainer(ClassDiscovery.class).toString();
 			}
@@ -269,16 +278,17 @@ public class ClassDiscovery {
 			}
 			if (url.startsWith("file:") && !url.endsWith(".jar")) {
 				final AtomicInteger id = new AtomicInteger(0);
-				ExecutorService service = Executors.newFixedThreadPool(10, new ThreadFactory() {
-					public Thread newThread(Runnable r) {
-						return new Thread(r, "ClassDiscovery-Async-" + id.incrementAndGet());
-					}
-				});
-				
+//				ExecutorService service = Executors.newFixedThreadPool(10, new ThreadFactory() {
+//					@Override
+//					public Thread newThread(Runnable r) {
+//						return new Thread(r, "ClassDiscovery-Async-" + id.incrementAndGet());
+//					}
+//				});
+
 				//Remove file: from the front
 				String root = url.substring(5);
 				rootLocationFile = new File(root);
-				List<File> fileList = new ArrayList<File>();
+				List<File> fileList = new ArrayList<>();
 				descend(new File(root), fileList);
 
 				//Now, we have all the class files in the package. But, it's the absolute path
@@ -288,10 +298,8 @@ public class ClassDiscovery {
 					if (!file.matches(".*\\$(?:\\d)*\\.class") && file.endsWith(".class")) {
 						InputStream stream = null;
 						try {
-                                                        File fileurl = new File(rootLocationFile,
-								f.getAbsolutePath().replaceFirst(
-                                                                        Pattern.quote(new File(root).getAbsolutePath() + File.separator), ""));
-							stream = FileUtil.readAsStream(fileurl);
+							stream = FileUtil.readAsStream(new File(rootLocationFile,
+									f.getAbsolutePath().replaceFirst(Pattern.quote(new File(root).getAbsolutePath() + File.separator), "")));
 							ClassMirror cm = new ClassMirror(stream, new URL(url));
 							mirrors.add(cm);
 						} catch (IOException ex) {
@@ -307,13 +315,13 @@ public class ClassDiscovery {
 						}
 					}
 				}
-				service.shutdown();
-				try {
-					//Doesn't look like 0 is an option, so we'll just wait a day.
-					service.awaitTermination(1, TimeUnit.DAYS);
-				} catch (InterruptedException ex) {
-					Logger.getLogger(ClassDiscovery.class.getName()).log(Level.SEVERE, null, ex);
-				}
+//				service.shutdown();
+//				try {
+//					//Doesn't look like 0 is an option, so we'll just wait a day.
+//					service.awaitTermination(1, TimeUnit.DAYS);
+//				} catch (InterruptedException ex) {
+//					Logger.getLogger(ClassDiscovery.class.getName()).log(Level.SEVERE, null, ex);
+//				}
 			} else if (url.startsWith("file:") && url.endsWith(".jar")) {
 				//We are running from a jar
 				url = url.replaceFirst("file:", "");
@@ -321,6 +329,7 @@ public class ClassDiscovery {
 				ZipIterator zi = new ZipIterator(rootLocationFile);
 				try {
 					zi.iterate(new ZipIterator.ZipIteratorCallback() {
+						@Override
 						public void handle(String filename, InputStream in) {
 							if (!filename.matches(".*\\$(?:\\d)*\\.class") && filename.endsWith(".class")) {
 								try {
@@ -361,7 +370,7 @@ public class ClassDiscovery {
 	/**
 	 * Gets the classloader set with {@link #setDefaultClassLoader(java.lang.ClassLoader)}, or the
 	 * builtin default if none was specified ever. Regardless, never returns null.
-	 * @return 
+	 * @return
 	 */
 	public ClassLoader getDefaultClassLoader() {
 		if (defaultClassLoader == null) {
@@ -382,40 +391,56 @@ public class ClassDiscovery {
 		if (url == null) {
 			throw new NullPointerException("url cannot be null");
 		}
-                
-                if (urlCache.contains(url)) {
+		if (urlCache.contains(url)) {
 			//Already here, so just return.
 			return;
 		}
-		
 		urlCache.add(url);
 		dirtyURLs.add(url);
 		classCache.put(url, new HashSet<ClassMirror<?>>());
 	}
-        
-        /**
-	 * Remove a discovery URL. Will automatically re-discover, after
-         * invalidating caches.
-         * 
+
+	/**
+	 * Searches one deep, finding all jar files, and adds them, using
+	 * addDiscoveryLocation. If folder doesn't exist, is null,
+	 * doesn't contain any jars, or otherwise can't be read, nothing happens.
+	 * @param folder
+	 */
+	public void addAllJarsInFolder(File folder){
+		if(folder != null && folder.exists() && folder.isDirectory()){
+			for(File f : folder.listFiles()){
+				if(f.getName().endsWith(".jar")){
+					try {
+						addDiscoveryLocation(f.toURI().toURL());
+					} catch (MalformedURLException ex) {
+						//
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Remove a discovery URL. Will invalidate caches.
+	 *
 	 * @param url
 	 */
-        public synchronized void removeDiscoveryLocation(URL url) {
-                if (url == null) {
+	public synchronized void removeDiscoveryLocation(URL url) {
+		if (url == null) {
 			throw new NullPointerException("url cannot be null");
 		}
-                
-        	if (!urlCache.contains(url)) {
+
+		if (!urlCache.contains(url)) {
 			//Not here, so just return.
 			return;
 		}
-                
+
 		urlCache.remove(url);
 		dirtyURLs.remove(url);
-                preCaches.remove(url);
-                
-                invalidateCaches();
-                doDiscovery();
-        }
+		preCaches.remove(url);
+
+		invalidateCaches();
+	}
 
 	/**
 	 * Clears the internal caches. This is called automatically when a new
@@ -433,7 +458,7 @@ public class ClassDiscovery {
 		classAnnotationCache.clear();
 		fieldAnnotationCache.clear();
 		methodAnnotationCache.clear();
-                dirtyURLs.addAll(urlCache);
+		dirtyURLs.addAll(urlCache);
 	}
 
 	/**
@@ -446,7 +471,7 @@ public class ClassDiscovery {
 	 */
 	public Set<ClassMirror<?>> getKnownClasses() {
 		doDiscovery();
-		Set<ClassMirror<?>> ret = new HashSet<ClassMirror<?>>();
+		Set<ClassMirror<?>> ret = new HashSet<>();
 		for (URL url : urlCache) {
 			ret.addAll(getKnownClasses(url));
 		}
@@ -462,11 +487,14 @@ public class ClassDiscovery {
 	 * @return
 	 */
 	public List<ClassMirror<?>> getKnownClasses(URL url) {
+		if (url == null) {
+			throw new NullPointerException("url cannot be null");
+		}
 		if (!classCache.containsKey(url)) {
 			addDiscoveryLocation(url);
 		}
 		doDiscovery();
-		return new ArrayList<ClassMirror<?>>(classCache.get(url));
+		return new ArrayList<>(classCache.get(url));
 	}
 
 	/**
@@ -484,10 +512,10 @@ public class ClassDiscovery {
 			return (Set) getKnownClasses();
 		}
 		if (classSubtypeCache.containsKey(superType)) {
-			return new HashSet<ClassMirror<T>>((Set) classSubtypeCache.get(superType));
+			return new HashSet<>((Set) classSubtypeCache.get(superType));
 		}
 		doDiscovery();
-		Set<ClassMirror<?>> mirrors = new HashSet<ClassMirror<?>>();
+		Set<ClassMirror<?>> mirrors = new HashSet<>();
 		Set<ClassMirror<T>> knownClasses = (Set) getKnownClasses();
 		outer:
 		for (ClassMirror m : knownClasses) {
@@ -498,97 +526,107 @@ public class ClassDiscovery {
 		classSubtypeCache.put(superType, mirrors);
 		return (Set) mirrors;
 	}
-	
+
 	/**
-	 * Returns true iff subClass extends, implements, or is superClass.
+	 * Returns true if subClass extends, implements, or is superClass.
 	 * This searches the entire known class ecosystem, including the known ClassMirrors
 	 * for this information.
 	 * @param subClass
 	 * @param superClass
-	 * @return 
+	 * @return
 	 */
 	public boolean doesClassExtend(ClassMirror subClass, Class superClass){
 		if (subClass.directlyExtendsFrom(superClass)) {
-				//Trivial case, so just add this now, then continue.
+			//Trivial case, so just add this now, then continue.
+			return true;
+		}
+		//Well, crap, more complicated. Ok, so, the list of supers
+		//can probably be walked up even further, so we need to find
+		//the supers of these (and make sure it's not in the ClassMirror
+		//cache, to avoid loading classes unneccessarily) and then load
+		//the actual Class object for them. Essentially, this falls back
+		//to loading the class when it
+		//can't be found in the mirrors pool.
+		Set<ClassReferenceMirror> supers = new HashSet<>();
+		//Get the superclass. If it's java.lang.Object, we're done.
+		ClassReferenceMirror su = subClass.getSuperClass();
+		while (!su.getJVMName().equals("Ljava/lang/Object;")) {
+			supers.add(su);
+			ClassMirror find = getClassMirrorFromJVMName(su.getJVMName());
+			if (find == null) {
+				try {
+					//Ok, have to Class.forName this one
+					Class clazz = ClassUtils.forCanonicalName(su.toString(), false, defaultClassLoader);
+					//We can just use isAssignableFrom now
+					if (superClass.isAssignableFrom(clazz)) {
+						return true;
+					} else {
+						//We need to add change the reference to su
+						su = new ClassReferenceMirror("L" + clazz.getSuperclass().getName().replace(".", "/") + ";");
+					}
+				} catch (ClassNotFoundException ex) {
+					//Hmm, ok? I guess something bad happened, so let's break
+					//the loop and give up on this class.
+					return false;
+				}
+			} else {
+				su = find.getSuperClass();
+			}
+		}
+		for(ClassReferenceMirror r : supers){
+			// Look through the supers. If any of them equal the search class, return true
+			if(r.getJVMName().equals(ClassUtils.getJVMName(superClass))){
 				return true;
 			}
-			//Well, crap, more complicated. Ok, so, the list of supers
-			//can probably be walked up even further, so we need to find
-			//the supers of these (and make sure it's not in the ClassMirror
-			//cache, to avoid loading classes unneccessarily) and then load
-			//the actual Class object for them. Essentially, this falls back
-			//to loading the class when it
-			//can't be found in the mirrors pool.
-			Set<ClassReferenceMirror> supers = new HashSet<ClassReferenceMirror>();
-			//Get the superclass. If it's java.lang.Object, we're done.
-			ClassReferenceMirror su = subClass.getSuperClass();
-			while (!su.getJVMName().equals("Ljava/lang/Object;")) {
-				supers.add(su);
-				ClassMirror find = getClassMirrorFromJVMName(su.getJVMName());
-				if (find == null) {
-					try {
-						//Ok, have to Class.forName this one
-						Class clazz = ClassUtils.forCanonicalName(su.toString());
-						//We can just use isAssignableFrom now
-						if (superClass.isAssignableFrom(clazz)) {
-							return true;
-						} else {
-							//We need to add change the reference to su
-							su = new ClassReferenceMirror("L" + clazz.getSuperclass().getName().replace(".", "/") + ";");
-						}
-					} catch (ClassNotFoundException ex) {
-						//Hmm, ok? I guess something bad happened, so let's break
-						//the loop and give up on this class.
-						return false;
+		}
+		//Same thing now, but for interfaces
+		Deque<ClassReferenceMirror> interfaces = new ArrayDeque<>();
+		Set<ClassReferenceMirror> handled = new HashSet<>();
+		interfaces.addAll(subClass.getInterfaces());
+		//Also have to add all the supers' interfaces too
+		for (ClassReferenceMirror r : supers) {
+			ClassMirror find = getClassMirrorFromJVMName(r.getJVMName());
+			if (find == null) {
+				try {
+					Class clazz = Class.forName(r.toString());
+					for (Class c : clazz.getInterfaces()) {
+						interfaces.add(new ClassReferenceMirror("L" + c.getName().replace(".", "/") + ";"));
 					}
-				} else {
-					su = find.getSuperClass();
+				} catch (ClassNotFoundException ex) {
+					return false;
+				}
+			} else {
+				interfaces.addAll(find.getInterfaces());
+			}
+		}
+		while (!interfaces.isEmpty()) {
+			ClassReferenceMirror in = interfaces.pop();
+			if(ClassUtils.getJVMName(superClass).equals(in.getJVMName())){
+				//Early short circuit. We know it's in the the list already.
+				return true;
+			}
+			if (handled.contains(in)) {
+				continue;
+			}
+			handled.add(in);
+			supers.add(in);
+			ClassMirror find = getClassMirrorFromJVMName(in.getJVMName());
+			if (find != null) {
+				interfaces.addAll(find.getInterfaces());
+			} else {
+				try {
+					//Again, have to check Class.forName
+					Class clazz = ClassUtils.forCanonicalName(in.toString(), false, getDefaultClassLoader());
+					if (superClass.isAssignableFrom(clazz)) {
+						return true;
+					}
+				} catch (ClassNotFoundException ex) {
+					return false;
 				}
 			}
-			//Same thing now, but for interfaces
-			Deque<ClassReferenceMirror> interfaces = new ArrayDeque<ClassReferenceMirror>();
-			Set<ClassReferenceMirror> handled = new HashSet<ClassReferenceMirror>();
-			interfaces.addAll(subClass.getInterfaces());
-			//Also have to add all the supers' interfaces too
-			for (ClassReferenceMirror r : supers) {
-				ClassMirror find = getClassMirrorFromJVMName(r.getJVMName());
-				if (find == null) {
-					try {
-						Class clazz = Class.forName(r.toString());
-						for (Class c : clazz.getInterfaces()) {
-							interfaces.add(new ClassReferenceMirror("L" + c.getName().replace(".", "/") + ";"));
-						}
-					} catch (ClassNotFoundException ex) {
-						return false;
-					}
-				} else {
-					interfaces.addAll(find.getInterfaces());
-				}
-			}
-			while (!interfaces.isEmpty()) {
-				ClassReferenceMirror in = interfaces.pop();
-				if (handled.contains(in)) {
-					continue;
-				}
-				handled.add(in);
-				supers.add(in);
-				ClassMirror find = getClassMirrorFromJVMName(in.getJVMName());
-				if (find != null) {
-					interfaces.addAll(find.getInterfaces());
-				} else {
-					try {
-						//Again, have to check Class.forName
-						Class clazz = ClassUtils.forCanonicalName(in.toString());
-						if (superClass.isAssignableFrom(clazz)) {
-							return true;
-						}
-					} catch (ClassNotFoundException ex) {
-						return false;
-					}
-				}
-			}
-			//Nope.
-			return false;
+		}
+		//Nope.
+		return false;
 	}
 
 	/**
@@ -618,7 +656,7 @@ public class ClassDiscovery {
 	 * @return
 	 */
 	public <T> Set<Class<T>> loadClassesThatExtend(Class<T> superType, ClassLoader loader, boolean initialize) {
-		Set<Class<T>> set = new HashSet<Class<T>>();
+		Set<Class<T>> set = new HashSet<>();
 		for (ClassMirror<T> cm : getClassesThatExtend(superType)) {
 			set.add(cm.loadClass(loader, initialize));
 		}
@@ -630,8 +668,8 @@ public class ClassDiscovery {
 			return jvmNameToMirror.get(className);
 		}
 		for (ClassMirror c : getKnownClasses()) {
-			if (("L" + c.getJVMClassName() + ";").equals(className)) {
-				jvmNameToMirror.put("L" + c.getJVMClassName() + ";", c);
+			if (c.getJVMClassName().equals(className)) {
+				jvmNameToMirror.put(c.getJVMClassName(), c);
 				return c;
 			}
 		}
@@ -650,10 +688,10 @@ public class ClassDiscovery {
 	 */
 	public Set<ClassMirror<?>> getClassesWithAnnotation(Class<? extends Annotation> annotation) {
 		if (classAnnotationCache.containsKey(annotation)) {
-			return new HashSet<ClassMirror<?>>(classAnnotationCache.get(annotation));
+			return new HashSet<>(classAnnotationCache.get(annotation));
 		}
 		doDiscovery();
-		Set<ClassMirror<?>> mirrors = new HashSet<ClassMirror<?>>();
+		Set<ClassMirror<?>> mirrors = new HashSet<>();
 		for (ClassMirror m : getKnownClasses()) {
 			if (m.hasAnnotation(annotation)) {
 				mirrors.add(m);
@@ -662,7 +700,7 @@ public class ClassDiscovery {
 		classAnnotationCache.put(annotation, mirrors);
 		return mirrors;
 	}
-	
+
 	/**
 	 * Combines finding classes with a specified annotation, and classes that extend a certain type.
 	 * @param <T> The type that will be returned, based on superClass
@@ -671,7 +709,7 @@ public class ClassDiscovery {
 	 * @return A set of class mirrors that match the criteria
 	 */
 	public <T> Set<ClassMirror<T>> getClassesWithAnnotationThatExtend(Class<? extends Annotation> annotation, Class<T> superClass){
-		Set<ClassMirror<T>> mirrors = new HashSet<ClassMirror<T>>();
+		Set<ClassMirror<T>> mirrors = new HashSet<>();
 		for(ClassMirror<?> c : getClassesWithAnnotation(annotation)){
 			if(doesClassExtend(c, superClass)){
 				mirrors.add((ClassMirror<T>)c);
@@ -679,9 +717,9 @@ public class ClassDiscovery {
 		}
 		return mirrors;
 	}
-	
+
 	/**
-	 * Unlike {@link #getClassesWithAnnotationThatExtend(java.lang.Class, java.lang.Class)}, this actually 
+	 * Unlike {@link #getClassesWithAnnotationThatExtend(java.lang.Class, java.lang.Class)}, this actually
 	 * loads the matching classes into PermGen, and returns a Set of these classes.
 	 * This is useful if you are for sure going to use these classes immediately, and don't want to have
 	 * to lazy load them individually.
@@ -693,9 +731,9 @@ public class ClassDiscovery {
 	public <T> Set<Class<T>> loadClassesWithAnnotationThatExtend(Class<? extends Annotation> annotation, Class<T> superClass){
 		return loadClassesWithAnnotationThatExtend(annotation, superClass, getDefaultClassLoader(), true);
 	}
-	
+
 	/**
-	 * Unlike {@link #getClassesWithAnnotationThatExtend(java.lang.Class, java.lang.Class)}, this actually 
+	 * Unlike {@link #getClassesWithAnnotationThatExtend(java.lang.Class, java.lang.Class)}, this actually
 	 * loads the matching classes into PermGen, and returns a Set of these classes.
 	 * This is useful if you are for sure going to use these classes immediately, and don't want to have
 	 * to lazy load them individually.
@@ -707,7 +745,7 @@ public class ClassDiscovery {
 	 * @return A set of classes that match the criteria
 	 */
 	public <T> Set<Class<T>> loadClassesWithAnnotationThatExtend(Class<? extends Annotation> annotation, Class<T> superClass, ClassLoader loader, boolean initialize){
-		Set<Class<T>> set = new HashSet<Class<T>>();
+		Set<Class<T>> set = new HashSet<>();
 		for (ClassMirror<T> cm : getClassesWithAnnotationThatExtend(annotation, superClass)) {
 			try {
 				set.add(cm.loadClass(loader, initialize));
@@ -744,7 +782,7 @@ public class ClassDiscovery {
 	 * @return
 	 */
 	public Set<Class> loadClassesWithAnnotation(Class<? extends Annotation> annotation, ClassLoader loader, boolean initialize) {
-		Set<Class> set = new HashSet<Class>();
+		Set<Class> set = new HashSet<>();
 		for (ClassMirror<?> cm : getClassesWithAnnotation(annotation)) {
 			try {
 				set.add(cm.loadClass(loader, initialize));
@@ -766,10 +804,10 @@ public class ClassDiscovery {
 	 */
 	public Set<FieldMirror> getFieldsWithAnnotation(Class<? extends Annotation> annotation) {
 		if (fieldAnnotationCache.containsKey(annotation)) {
-			return new HashSet<FieldMirror>(fieldAnnotationCache.get(annotation));
+			return new HashSet<>(fieldAnnotationCache.get(annotation));
 		}
 		doDiscovery();
-		Set<FieldMirror> mirrors = new HashSet<FieldMirror>();
+		Set<FieldMirror> mirrors = new HashSet<>();
 		for (ClassMirror m : getKnownClasses()) {
 			for (FieldMirror f : m.getFields()) {
 				if (f.hasAnnotation(annotation)) {
@@ -791,10 +829,10 @@ public class ClassDiscovery {
 	 */
 	public Set<MethodMirror> getMethodsWithAnnotation(Class<? extends Annotation> annotation) {
 		if (methodAnnotationCache.containsKey(annotation)) {
-			return new HashSet<MethodMirror>(methodAnnotationCache.get(annotation));
+			return new HashSet<>(methodAnnotationCache.get(annotation));
 		}
 		doDiscovery();
-		Set<MethodMirror> mirrors = new HashSet<MethodMirror>();
+		Set<MethodMirror> mirrors = new HashSet<>();
 		for (ClassMirror m : getKnownClasses()) {
 			for (MethodMirror mm : m.getMethods()) {
 				if (mm.hasAnnotation(annotation)) {
@@ -834,7 +872,7 @@ public class ClassDiscovery {
 	 */
 	public Set<Method> loadMethodsWithAnnotation(Class<? extends Annotation> annotation, ClassLoader loader, boolean initialize) {
 		try {
-			Set<Method> set = new HashSet<Method>();
+			Set<Method> set = new HashSet<>();
 			for (MethodMirror mm : getMethodsWithAnnotation(annotation)) {
 				set.add(mm.loadMethod(loader, initialize));
 			}
@@ -894,7 +932,7 @@ public class ClassDiscovery {
 		if (fuzzyClassCache.containsKey(index)) {
 			return fuzzyClassCache.get(index);
 		}
-		Set<ClassMirror> found = new HashSet<ClassMirror>();
+		Set<ClassMirror> found = new HashSet<>();
 		Set<ClassMirror<?>> searchSpace = getKnownClasses();
 		for (ClassMirror c : searchSpace) {
 			if (c.getPackage().getName().matches(packageRegex) && c.getSimpleName().equals(className)) {
@@ -952,26 +990,26 @@ public class ClassDiscovery {
 		if (c == null) {
 			throw new NullPointerException("The Class passed to this method may not be null");
 		}
+		while (c.isMemberClass() || c.isAnonymousClass()) {
+			c = c.getEnclosingClass(); //Get the actual enclosing file
+		}
+		if (c.getProtectionDomain().getCodeSource() == null) {
+			//This is a proxy or other dynamically generated class, and has no physical container,
+			//so just return null.
+			return null;
+		}
+		String packageRoot = null;
+		//This is the full path to THIS file, but we need to get the package root below.
+		String thisClass = c.getResource(c.getSimpleName() + ".class").toString();
 		try {
-			while (c.isMemberClass() || c.isAnonymousClass()) {
-				c = c.getEnclosingClass(); //Get the actual enclosing file
-			}
-			if (c.getProtectionDomain().getCodeSource() == null) {
-				//This is a proxy or other dynamically generated class, and has no physical container,
-				//so just return null.
-				return null;
-			}
-			String packageRoot;
 			try {
-				//This is the full path to THIS file, but we need to get the package root.
-				String thisClass = c.getResource(c.getSimpleName() + ".class").toString();
 				packageRoot = StringUtils.replaceLast(thisClass, Pattern.quote(c.getName().replaceAll("\\.", "/") + ".class"), "");
 			} catch (Exception e) {
 				//Hmm, ok, try this then
 				packageRoot = c.getProtectionDomain().getCodeSource().getLocation().toString();
 			}
 			packageRoot = URLDecoder.decode(packageRoot, "UTF-8");
-                        if (packageRoot.matches("jar:file:.*!/")) {
+			if (packageRoot.matches("jar:file:.*!/")) {
 				packageRoot = StringUtils.replaceLast(packageRoot, "!/", "");
 				packageRoot = packageRoot.replaceFirst("jar:", "");
 			}
@@ -979,7 +1017,7 @@ public class ClassDiscovery {
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException("While interrogating " + c.getName() + ", an unexpected exception was thrown.", e);
 		} catch (MalformedURLException e) {
-			throw new RuntimeException("While interrogating " + c.getName() + ", an unexpected exception was thrown.", e);
+			throw new RuntimeException("While interrogating " + c.getName() + ", an unexpected exception was thrown for potential URL: \"" + packageRoot + "\"", e);
 		}
 	}
 }

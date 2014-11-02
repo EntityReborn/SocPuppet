@@ -310,6 +310,28 @@ public class ExtensionManager {
 
             extensions.get(url).addTrigger(trig);
         }
+        
+        for (ClassMirror<ConsoleCommand> extmirror : cd.getClassesWithAnnotationThatExtend(Trigger.class, ConsoleCommand.class)) {
+            ConsoleCommand trig;
+
+            Class<ConsoleCommand> extcls = extmirror.loadClass(dcl, true);
+            URL url = ClassDiscovery.GetClassContainer(extcls);
+
+            try {
+                trig = extcls.newInstance();
+            } catch (InstantiationException | IllegalAccessException ex) {
+                //Error, but skip this one, don't throw an exception ourselves, just log it.
+                Logger.getLogger(ExtensionManager.class.getName()).log(Level.SEVERE,
+                        "Could not instantiate " + extcls.getName() + ": " + ex.getMessage());
+                continue;
+            }
+
+            if (!extensions.containsKey(url)) {
+                extensions.put(url, new ExtensionTracker(url, cd, dcl));
+            }
+
+            extensions.get(url).addConsoleCommand(trig);
+        }
     }
 
     public Map<URL, ExtensionTracker> getTrackers() {

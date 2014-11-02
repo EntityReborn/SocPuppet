@@ -50,78 +50,78 @@ public class ExtensionAnnotationProcessor extends AbstractProcessor {
 	 */
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-		boolean isExtensionWithLifecycleClass = false;
-		
-		// Find all annotations in this environment with the MSExtension annotation.
-		for (Element possible : roundEnv.getElementsAnnotatedWith(SocBotPlugin.class)) {
-			System.out.println("Processing " + possible);
-			
-			// Make sure this compile unit exposes only one lifecycle class
-			if (found > 0) {
-				error("A given compile unit (IE, Jar file) may contain only"
-					+ " ONE lifecycle class!", possible);
-				continue;
-			}
-			
-			Class clazz;
-			
-			// Manually load the class, as the class provided by the element isn't sufficient.
-			try {
-				clazz = getClassFromName(possible.toString());
-			} catch (ClassNotFoundException ex) {
-				Logger.getLogger(ExtensionAnnotationProcessor.class.getName()).log(Level.SEVERE, null, ex);
-				continue;
-			}
-			
-			Set<Modifier> modifiers = possible.getModifiers();
-			
-			// The class must be static.
-			if (!modifiers.contains(Modifier.PUBLIC)) {
-				error("Lifecycle classes must be declared public!", possible);
-				continue;
-			}
-			
-			// If the class is an embedded class, it must be declared static as well as public.
-			if (clazz.isMemberClass() && !modifiers.contains(Modifier.STATIC)) {
-				error("Lifecycle class must be declared static when wrapped "
-						+ "by an outer class!", possible);
-				continue;
-			}
-			
-			// The class must extend Extension.class
-			if (!Extension.class.isAssignableFrom(clazz)) {
-				error("Lifecycle class must extend AbstractExtension!", possible);
-				continue;
-			}
-			
-			SocBotPlugin annotation = null;
-			
-			// Let's get the annotation instance pertaining to this class, so we
-			// can get the name.
-			for (Annotation a : clazz.getAnnotations()) {
-				if (a instanceof SocBotPlugin) {
-					annotation = (SocBotPlugin)a;
-				}
-			}
-			
-			// We really shouldn't ever get here, because of the call used in the
-			// for loop above, but handle it anyway.
-			if (annotation == null) {
-				error("Lifecycle class must be annotated with MSExtension!", possible);
-				continue;
-			}
-			
-			found++;
-			
-			System.out.println("Extension '" + annotation.value() + "' checks out ok!");
+            boolean isExtensionWithLifecycleClass = false;
 
-			isExtensionWithLifecycleClass = true;
-		}
-		
-		return isExtensionWithLifecycleClass;
-	}
-	
-	private static Class getClassFromName(String className) throws ClassNotFoundException {
-		return ClassUtils.forCanonicalName(className, false, ExtensionAnnotationProcessor.class.getClassLoader());
-	}
+            // Find all annotations in this environment with the MSExtension annotation.
+            for (Element possible : roundEnv.getElementsAnnotatedWith(SocBotPlugin.class)) {
+                    System.out.println("Processing " + possible);
+
+                    // Make sure this compile unit exposes only one lifecycle class
+                    if (found > 0) {
+                            error("A given compile unit (IE, Jar file) may contain only"
+                                    + " ONE lifecycle class!", possible);
+                            continue;
+                    }
+
+                    Class clazz;
+
+                    // Manually load the class, as the class provided by the element isn't sufficient.
+                    try {
+                            clazz = getClassFromName(possible.toString());
+                    } catch (ClassNotFoundException ex) {
+                            Logger.getLogger(ExtensionAnnotationProcessor.class.getName()).log(Level.SEVERE, null, ex);
+                            continue;
+                    }
+
+                    Set<Modifier> modifiers = possible.getModifiers();
+
+                    // The class must be static.
+                    if (!modifiers.contains(Modifier.PUBLIC)) {
+                            error("Lifecycle classes must be declared public!", possible);
+                            continue;
+                    }
+
+                    // If the class is an embedded class, it must be declared static as well as public.
+                    if (clazz.isMemberClass() && !modifiers.contains(Modifier.STATIC)) {
+                            error("Lifecycle class must be declared static when wrapped "
+                                            + "by an outer class!", possible);
+                            continue;
+                    }
+
+                    // The class must extend Extension.class
+                    if (!Extension.class.isAssignableFrom(clazz)) {
+                            error("Lifecycle class must extend AbstractExtension!", possible);
+                            continue;
+                    }
+
+                    SocBotPlugin annotation = null;
+
+                    // Let's get the annotation instance pertaining to this class, so we
+                    // can get the name.
+                    for (Annotation a : clazz.getAnnotations()) {
+                            if (a instanceof SocBotPlugin) {
+                                    annotation = (SocBotPlugin)a;
+                            }
+                    }
+
+                    // We really shouldn't ever get here, because of the call used in the
+                    // for loop above, but handle it anyway.
+                    if (annotation == null) {
+                            error("Lifecycle class must be annotated with MSExtension!", possible);
+                            continue;
+                    }
+
+                    found++;
+
+                    System.out.println("Extension '" + annotation.value() + "' checks out ok!");
+
+                    isExtensionWithLifecycleClass = true;
+            }
+
+            return isExtensionWithLifecycleClass;
+    }
+
+    private static Class getClassFromName(String className) throws ClassNotFoundException {
+            return ClassUtils.forCanonicalName(className, false, ExtensionAnnotationProcessor.class.getClassLoader());
+    }
 }

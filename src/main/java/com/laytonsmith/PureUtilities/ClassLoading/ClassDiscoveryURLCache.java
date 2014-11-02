@@ -48,8 +48,9 @@ public class ClassDiscoveryURLCache {
 		//we would get stuck in an infinite loop.
 		discovery.setClassDiscoveryCache(null);
 		discovery.addDiscoveryLocation(url);
+		
 		for(ClassMirror m : discovery.getKnownClasses(url)){
-                        ReflectionUtils.set(ClassMirror.class, m, "originalURL", url);
+			ReflectionUtils.set(ClassMirror.class, m, "originalURL", url);
 			list.add(m);
 		}
 	}
@@ -62,6 +63,7 @@ public class ClassDiscoveryURLCache {
 	 * @param url
 	 * @param descriptor
 	 * @throws IOException 
+	 * @throws java.lang.ClassNotFoundException 
 	 */
 	public ClassDiscoveryURLCache(URL url, InputStream descriptor) throws IOException, ClassNotFoundException{
 		List<ClassMirror<?>> _list;
@@ -77,11 +79,11 @@ public class ClassDiscoveryURLCache {
 			}
 		}
 		ois.close();
-                
-                for (ClassMirror m : _list) {
-                    ReflectionUtils.set(ClassMirror.class, m, "originalURL", url);
-                }
-                
+
+		for (ClassMirror m : _list) {
+			ReflectionUtils.set(ClassMirror.class, m, "originalURL", url);
+		}
+		
 		this.list = _list;
 	}
 	

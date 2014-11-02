@@ -14,7 +14,6 @@ import java.util.List;
  * Streams are hard sometimes. This class abstracts most of the functionality
  * that is commonly used.
  *
- * @author lsmith
  */
 public class StreamUtils {
 
@@ -35,7 +34,9 @@ public class StreamUtils {
 	
 	/**
 	 * Given an input stream, a UTF-8 encoded string is returned, which
-	 * is a reasonable assumption for most textual data.
+	 * is a reasonable assumption for most textual data. This assumes
+	 * that the stream is finite, i.e. not a streaming socket, for instance, and
+	 * reads until the stream reaches the end.
 	 * @param out
 	 * @return 
 	 */
@@ -48,7 +49,9 @@ public class StreamUtils {
 	}
 	
 	/**
-	 * Gets a string from an input stream, assuming the given encoding.
+	 * Gets a string from an input stream, assuming the given encoding. This assumes
+	 * that the stream is finite, i.e. not a streaming socket, for instance, and
+	 * reads until the stream reaches the end.
 	 * @param in
 	 * @param encoding
 	 * @return
@@ -78,6 +81,13 @@ public class StreamUtils {
 
 	}
 	
+	/**
+	 * Fully reads in a stream, as efficiently as possible, and returns a
+	 * byte array.
+	 * @param in
+	 * @return
+	 * @throws IOException 
+	 */
 	public static byte[] GetBytes(InputStream in) throws IOException {
 		BufferedInputStream bis = new BufferedInputStream(in);
 		List<Byte> bytes = new ArrayList<Byte>();

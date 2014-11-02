@@ -45,6 +45,7 @@ public class ExtensionTracker {
     
     final Map<String, Extension> extensions = new HashMap<>();
     final Map<String, AbstractTrigger> triggers = new HashMap<>();
+    final Map<String, ConsoleCommand> consoleCommands = new HashMap<>();
 
     public ExtensionTracker(URL location, ClassDiscovery cd, DynamicClassLoader dcl) {
         this.location = location;
@@ -107,8 +108,16 @@ public class ExtensionTracker {
     void addTrigger(AbstractTrigger trig) {
         triggers.put(trig.name().toLowerCase(), trig);
     }
+    
+    void addConsoleCommand(ConsoleCommand trig) {
+        consoleCommands.put(trig.name().toLowerCase(), trig);
+    }
 
     public Map<String, AbstractTrigger> getTriggers() {
         return Collections.unmodifiableMap(triggers);
+    }
+    
+    public Map<String, ConsoleCommand> getConsoleCommands() {
+        return Collections.unmodifiableMap(consoleCommands);
     }
 }

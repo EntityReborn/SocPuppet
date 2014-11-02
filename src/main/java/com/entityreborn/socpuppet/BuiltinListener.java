@@ -68,8 +68,7 @@ public class BuiltinListener implements Listener {
     }
     
     public void debug(SocBot bot, String message) {
-        System.out.println("[" + bot.getID() + "] " + 
-                Styles.removeAll(Colors.removeAll(message)));
+        System.out.println("[" + bot.getID() + "] " + message);
     }
 
     @EventHandler

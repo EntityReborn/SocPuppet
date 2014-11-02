@@ -23,25 +23,40 @@
  */
 package com.entityreborn.socpuppet;
 
-import com.entityreborn.socbot.SocBot;
 import com.entityreborn.socbot.UserFactory;
 import com.entityreborn.socbot.eventsystem.EventManager;
 import com.entityreborn.socpuppet.config.BotConfig;
 import com.entityreborn.socpuppet.config.ConnectionConfig;
+import com.entityreborn.socpuppet.console.ConsoleManager;
 import com.entityreborn.socpuppet.extensions.ExtensionManager;
 import com.entityreborn.socpuppet.users.SocPuppetUser;
+import com.entityreborn.socpuppet.util.ShutdownMonitorThread;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscovery;
 import com.laytonsmith.PureUtilities.ClassLoading.ClassDiscoveryCache;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  * @author Jason Unger <entityreborn@gmail.com>
  */
 public class App {
+    private static App instance;
+    
+    public synchronized static App getInstance() {
+        if (instance == null) {
+            instance = new App();
+        }
+        
+        return instance;
+    }
+    
     static String VERSION = "";
+    private static final ConsoleManager consoleManager = ConsoleManager.getInstance();
+    private static final Map<String, SocPuppet> bots = new HashMap<>();
     
     static {
         Package p = App.class.getPackage();
@@ -62,8 +77,35 @@ public class App {
             }
         }
     }
+    
+    private App() {
+    }
+    
+    public static Map<String, SocPuppet> getBots() {
+        return bots;
+    }
+    
+    public static void shutdown() {
+        System.out.println("Shutting down bots...");
+        for (SocPuppet bot : bots.values()) {
+            bot.quit();
+        }
+        
+        bots.clear();
+        
+        ShutdownMonitorThread shutdown = new ShutdownMonitorThread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("Bye!");
+            }
+        });
+        
+        shutdown.start();
+    }
 
     public static void main(String[] args) throws Exception {
+        consoleManager.startConsole(true);
+        
         BotConfig c = BotConfig.get();
         c.load();
         
@@ -105,7 +147,9 @@ public class App {
                 continue;
             }
             
-            final SocBot bot = new SocPuppet(conn, connname);
+            final SocPuppet bot = new SocPuppet(conn, connname);
+            bots.put(connname, bot);
+            
             bot.setUserFactory(factory);
             EventManager.registerEvents(new BuiltinListener(c), bot);
             

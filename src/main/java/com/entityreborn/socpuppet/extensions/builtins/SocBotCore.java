@@ -24,8 +24,10 @@
 package com.entityreborn.socpuppet.extensions.builtins;
 
 import com.entityreborn.socbot.events.PrivmsgEvent;
+import com.entityreborn.socpuppet.console.ConsoleManager;
 import com.entityreborn.socpuppet.extensions.AbstractExtension;
 import com.entityreborn.socpuppet.extensions.AbstractTrigger;
+import com.entityreborn.socpuppet.extensions.ConsoleCommand;
 import com.entityreborn.socpuppet.extensions.annotations.Permission;
 import com.entityreborn.socpuppet.extensions.annotations.SocBotPlugin;
 import com.entityreborn.socpuppet.extensions.annotations.Trigger;
@@ -53,6 +55,36 @@ public class SocBotCore extends AbstractExtension {
         @Override
         public String docs() {
             return "ping - Pings the bot.";
+        }
+    }
+    
+    @Trigger(name = "ping", id = "core.general.ping")
+    public static class console_ping extends ConsoleCommand {
+
+        @Override
+        public String exec(String trigger, String args) {
+            return "Ping!";
+        }
+
+        @Override
+        public String docs() {
+            return "ping - Pings the bot.";
+        }
+    }
+    
+    @Trigger(name = "shutdown", id = "core.general.ping")
+    public static class console_shutdown extends ConsoleCommand {
+
+        @Override
+        public String exec(String trigger, String args) {
+            ConsoleManager.getInstance().stop();
+            
+            return "Shutting down.";
+        }
+
+        @Override
+        public String docs() {
+            return "shutdown - Shuts off the bot.";
         }
     }
 
@@ -115,7 +147,7 @@ public class SocBotCore extends AbstractExtension {
 
         @Override
         public String exec(PrivmsgEvent event, String trigger, String args) {
-            event.getBot().quit((args.trim().isEmpty()?"Bye!":args));
+            ConsoleManager.getInstance().stop();
 
             return null;
         }
@@ -132,7 +164,7 @@ public class SocBotCore extends AbstractExtension {
 
         @Override
         public String exec(final PrivmsgEvent event, String trigger, String args) {
-            event.getBot().quit((args.trim().isEmpty()?"Bye!":args));
+            ConsoleManager.getInstance().stop();
 
             Runnable restartThread = new Runnable() {
                 @Override
@@ -153,6 +185,43 @@ public class SocBotCore extends AbstractExtension {
                     
                     try {
                         Restart.restartApplication(waitForDisconnect);
+                    } catch (IOException ex) {
+                        Logger.getLogger(SocBotCore.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            };
+
+            Thread shutdown = new Thread(restartThread);
+
+            shutdown.setDaemon(true);
+            shutdown.start();
+
+            return null;
+        }
+
+        @Override
+        public String docs() {
+            return "say <something> - Tells the bot to say <something>.";
+        }
+    }
+    
+    @Trigger(name = "restart", id = "core.general.restart")
+    @Permission(node = "core.general.restart")
+    public static class console_restart extends ConsoleCommand {
+
+        @Override
+        public String exec(String trigger, String args) {
+            ConsoleManager.getInstance().stop();
+
+            Runnable restartThread = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Restart.restartApplication(new Runnable(){
+                            @Override
+                            public void run() {
+                            }
+                        });
                     } catch (IOException ex) {
                         Logger.getLogger(SocBotCore.class.getName()).log(Level.SEVERE, null, ex);
                     }

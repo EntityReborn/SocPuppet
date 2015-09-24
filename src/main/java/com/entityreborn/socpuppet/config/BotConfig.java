@@ -28,6 +28,7 @@ import com.entityreborn.config.YamlConfig;
 import com.entityreborn.config.exceptions.NoSuchSection;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,5 +101,33 @@ public class BotConfig {
         }
         
         return new File(dir);
+    }
+    
+    public List<File> getDirectories(String type) {
+        ConfigurationSection dirsect;
+        
+        try {
+            dirsect = config.getSection("directories");
+        } catch (NoSuchSection ex) {
+            return null;
+        }
+        
+        List<String> dirs = dirsect.getStringList(type.toLowerCase());
+        List<File> dirFiles = new ArrayList<>();
+        
+        for (String dir : dirs) {
+            if (dir == null) {
+                continue;
+            }
+            
+            File aDir = new File(dir);
+            if (!aDir.exists() || !aDir.isDirectory()) {
+                continue;
+            }
+            
+            dirFiles.add(aDir);
+        }
+        
+        return dirFiles;
     }
 }

@@ -85,6 +85,7 @@ public class ExtensionTracker {
 
             try {
                 ext.onPluginLoad();
+                System.out.println("Loaded " + ext.getName());
             } catch (Throwable e) {
                 Logger log = Logger.getLogger(ExtensionManager.class.getName());
                 log.log(Level.SEVERE, ext.getName() + "'s onStartup caused an exception:");

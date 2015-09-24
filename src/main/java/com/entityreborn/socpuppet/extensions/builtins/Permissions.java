@@ -94,6 +94,9 @@ public class Permissions {
             }
             
             String[] parts = args.split(" ", 3); // username, email, password
+            if (parts.length != 3) {
+                return docs();
+            }
             
             UserManager manager;
             if (!isGlobal) {
@@ -115,7 +118,7 @@ public class Permissions {
 
         @Override
         public String docs() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            return "register <username> <email> <password>";
         }
     }
     
@@ -194,6 +197,49 @@ public class Permissions {
             
             try {
                 user.update();
+            } catch (SQLException ex) {
+                Logger.getLogger(SocBotCore.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            return "Done";
+        }
+
+        @Override
+        public String docs() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+    }
+    
+    @Trigger(name="addmask", id="core.user.masks.add")
+    public static class addmask extends AbstractTrigger {
+
+        @Override
+        public String exec(PrivmsgEvent event, String trigger, String args) {
+            if (!(event.getUser() instanceof SocPuppetUser)) {
+                return null;
+            }
+            
+            SocPuppetUser user = (SocPuppetUser)event.getUser();
+            
+            if (user.getRegistration() == null) {
+                return "You need to be logged in to do that!";
+            }
+            
+            RegisteredUser registration;
+            try {
+                registration = UserManager.get(null).getUser(user.getName());
+            } catch (UserException.UnknownUser ex) {
+                return "Unknown user registration";
+            }
+            
+            if (registration.getAuthMasks().contains(user.getHostmask())) {
+                return "User already has that mask!";
+            }
+            
+            registration.addAuthMask(user.getHostmask());
+            
+            try {
+                registration.update();
             } catch (SQLException ex) {
                 Logger.getLogger(SocBotCore.class.getName()).log(Level.SEVERE, null, ex);
             }

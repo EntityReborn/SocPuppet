@@ -56,11 +56,11 @@ public class RegisteredUser extends BaseDaoEnabled {
     @DatabaseField(defaultValue = "", persisterClass = StringSetType.class)
     private final HashSet<String> perms;
     @DatabaseField(defaultValue = "", persisterClass = StringSetType.class)
-    private final HashSet<String> groups;
+    private final HashSet<String> autoAuthMasks;
     
     public RegisteredUser() {
         perms = new HashSet<>();
-        groups = new HashSet<>();
+        autoAuthMasks = new HashSet<>();
     }
 
     public RegisteredUser(String username, String password, String email) throws Exception {
@@ -70,7 +70,7 @@ public class RegisteredUser extends BaseDaoEnabled {
         
         regDate = new Date();
         perms = new HashSet<>();
-        groups = new HashSet<>();
+        autoAuthMasks = new HashSet<>();
     }
     /**
      * @return the username
@@ -247,5 +247,21 @@ public class RegisteredUser extends BaseDaoEnabled {
      */
     public Set<String> getPerms() {
         return Collections.unmodifiableSet(perms);
+    }
+    
+    public Set<String> getAuthMasks() {
+        return Collections.unmodifiableSet(autoAuthMasks);
+    }
+    
+    public void addAuthMask(String mask) {
+        if (!autoAuthMasks.contains(mask)) {
+            autoAuthMasks.add(mask);
+        }
+    }
+    
+    public void removeAuthMask(String mask) {
+        if (autoAuthMasks.contains(mask)) {
+            autoAuthMasks.remove(mask);
+        }
     }
 }

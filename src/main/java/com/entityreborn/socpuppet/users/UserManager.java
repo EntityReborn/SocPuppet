@@ -138,7 +138,8 @@ public class UserManager {
             Logger.getLogger(UserManager.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
-
+        
+        user.setDao(dao);
         return user;
     }
 

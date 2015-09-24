@@ -85,7 +85,7 @@ public class StringSetType extends BaseDataType {
 
     @Override
     public Object parseDefaultString(FieldType fieldType, String defaultStr) throws SQLException {
-        return defaultStr;
+        return new HashSet<>();
     }
 
     @Override

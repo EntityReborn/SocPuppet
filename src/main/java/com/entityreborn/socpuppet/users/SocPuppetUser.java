@@ -73,7 +73,23 @@ public class SocPuppetUser extends User {
         }
     }
     
-    
+    public boolean attemptHostmaskLogin() {
+        UserManager manager = UserManager.get((SocPuppet) getBot());
+        RegisteredUser user;
+        
+        try {
+            user = manager.getUser(getName());
+        } catch (UnknownUser ex) {
+            return false;
+        }
+        
+        if (user.getAuthMasks().contains(getHostmask())) {
+            loginName = user.getUsername();
+            return true;
+        } else {
+            return false;
+        }
+    }
     
     /**
      * Return the registration instance for this user.

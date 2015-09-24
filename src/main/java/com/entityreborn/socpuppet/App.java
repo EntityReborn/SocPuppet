@@ -23,6 +23,7 @@
  */
 package com.entityreborn.socpuppet;
 
+import com.entityreborn.socpuppet.extensions.builtins.BuiltinListener;
 import com.entityreborn.socbot.UserFactory;
 import com.entityreborn.socbot.eventsystem.EventManager;
 import com.entityreborn.socpuppet.config.BotConfig;
@@ -117,7 +118,9 @@ public class App {
         URL thisurl = ClassDiscovery.GetClassContainer(App.class);
         ExtensionManager em = ExtensionManager.Get();
         
-        em.addDiscoveryLocation(c.getDirectory("plugins"));
+        for (File dir : c.getDirectories("plugins")) {
+            em.addDiscoveryLocation(dir);
+        }
         
         // Cache extensions!
         
